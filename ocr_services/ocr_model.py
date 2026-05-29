@@ -1,4 +1,5 @@
 import os
+
 os.environ["FLAGS_use_mkldnn"] = "0"
 import logging
 from paddleocr import PaddleOCR
@@ -9,17 +10,19 @@ logging.getLogger("ppocr").setLevel(logging.ERROR)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
 @dataclass(frozen=True)
 class OCRConfig:
-    lang: str = 'ru'
+    lang: str = "ru"
     use_doc_orientation_classify: bool = True
     use_doc_unwarping: bool = False
     use_textline_orientation: bool = False
     use_gpu: bool = False
     # show_log: bool = False
 
+
 class OCREngine:
-    _example: Optional['OCREngine'] = None
+    _example: Optional["OCREngine"] = None
 
     def __new__(cls, config: Optional[OCRConfig] = None):
         if cls._example is None:
@@ -28,18 +31,18 @@ class OCREngine:
 
             if config is None:
                 config = OCRConfig()
-            
-            device = 'gpu' if config.use_gpu else 'cpu'
+
+            device = "gpu" if config.use_gpu else "cpu"
             # log_level = logging.ERROR if not config.show_log else logging.INFO
 
             params = {
-                'lang': config.lang,
-                'use_doc_orientation_classify': config.use_doc_orientation_classify,
-                'use_doc_unwarping': config.use_doc_unwarping,
-                'use_textline_orientation': config.use_textline_orientation,
-                'device': device,
+                "lang": config.lang,
+                "use_doc_orientation_classify": config.use_doc_orientation_classify,
+                "use_doc_unwarping": config.use_doc_unwarping,
+                "use_textline_orientation": config.use_textline_orientation,
+                "device": device,
                 # 'log_level': log_level,
-                'enable_mkldnn': False,
+                "enable_mkldnn": False,
             }
             cls._example.ocr = PaddleOCR(**params)
         return cls._example
@@ -50,7 +53,9 @@ class OCREngine:
         """
         return self.ocr
 
+
 _ocr_model: Optional[PaddleOCR] = None
+
 
 def load_ocr(config: Optional[OCRConfig] = None):
     global _ocr_model
