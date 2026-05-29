@@ -43,6 +43,22 @@ def get_summa(text: str):
     return res_all[0] if res_all else None
 
 
+def get_nds_procent(text: str):
+    regs = [
+        r'(?i)ндс\s*(\d{1,3})\s*%',
+        r'(?i)ндс\s*(\d{1,3})\s*проц',
+        r'(?i)ставка\s+ндс\s*[:=]\s*(\d{1,3})',
+    ]
+    for reg in regs:
+        res = re.search(reg, text)
+        if res:
+            return int(res.group(1))
+    
+    reg_no_nds = r'(?i)без\s+ндс|ндс\s+не\s+облагается'
+    res = re.search(reg_no_nds, text)
+    return 0 if res else None
+
+
 def get_provider_inn(text: str):
     """
     юр лицо: 10
