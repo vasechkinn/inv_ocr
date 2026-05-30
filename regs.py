@@ -37,6 +37,11 @@ def get_summa(text: str):
     res = re.findall(reg_rub, text)
     if res:
         return res[0]
+    
+    reg_rub_int = r"(?i)(?<!\d)(\d+)\s*(?:руб|р\.|₽)"
+    res = re.findall(reg_rub_int, text)
+    if res:
+        return res[0]
 
     reg = r"(?<!\d)\d+[,.]\d{2}(?!\d)"
     res_all = re.findall(reg, text)
@@ -73,56 +78,74 @@ def get_nds_sum(text: str):
     return None
 
 
+def _block_text(text: str, direction: str):
+    pattern = rf'(?i){direction}\s*:?\s*(.+?)(?=\n\s*(?:поставщик|покупатель|итого|всего|$))'
+    match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
+
+    return match.group(1) if match else None
+
 def get_provider_inn(text: str):
     """
     юр лицо: 10
     ип: 12
     """
-    reg_1 = r"(?i)(?:ИНН\s+поставщика|ИНН\s+принципала|ИНН\s+продавца)\s*:?\s*(?<!\d)(\d{10}|\d{12})(?!\d)"
-    res_1 = re.search(reg_1, text)
-    if res_1:
-        return res_1.group(1)
+    block = _block_text(text, 'поставщик')
+    if not block:
+        return None
+    
+    reg_1 = r"(?i)ИНН\s*:?\s*(?<!\d)(\d{10}|\d{12})(?!\d)"
+    res_1 = re.search(reg_1, block)
 
-    reg_2 = r"(?i)ИНН\s*:?\s*(?<!\d)(\d{10}|\d{12})(?!\d)"
-    res_2 = re.search(reg_2, text)
-    if res_2:
-        return res_2.group(1)
-
-    return None
+    return res_1.group(1) if res_1 else None
 
 
 def get_provider_num_account(text: str):
+    block = _block_text(text, 'поставщик')
+    if not block:
+        return None
+    
     reg = r"(?i)(?:р/с|расч[её]тны[й]\s+сч[её]т|сч[её]т\s+поставщика)\s*:?\s*(?<!\d)(\d{20})(?!\d)"
-    res = re.search(reg, text)
+    res = re.search(reg, block)
     return res.group(1) if res else None
 
 
-def get_buyer_inn(text: str):
-    reg = r"(?i)(?:ИНН\s+покупателя|ИНН\s+клиента|ИНН\s+заказчика|ИНН\s+плательщика)\s*:?\s*(?<!\d)(\d{10}|\d{12})(?!\d)"
-    res = re.search(reg, text)
+def get_provider_name(text: str):
+    block = _block_text(text, 'поставщик')
+    if not block:
+        return None
+    
+    org_forms = r'(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|ОООО)'
+    name_match = re.search(rf'({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n)', block, re.IGNORECASE)
 
-    return res.group(1) if res else None
+    return name_match.group(1).strip() if name_match else None
+
+
+def get_buyer_inn(text: str) -> str | None:
+    block = _block_text(text, 'покупатель')
+    if not block:
+        return None
+    
+    inn_match = re.search(r'(?i)ИНН\s*:?\s*(?<!\d)(\d{10}|\d{12})(?!\d)', block)
+    
+    return inn_match.group(1) if inn_match else None
 
 
 def get_fio_buyer(text: str):
-    buyer = r'(?:покупатель|клиент|заказчик|плательщик)'
+    block = _block_text(text, 'покупатель')
+    if not block:
+        return None
+    
     reg = r"([А-ЯЁ][а-яё\-]+(?:\s+[А-ЯЁ][а-яё\-\.]+){1,2})"
-
-    res_reg = rf'(?i){buyer}[^А-ЯЁ]*?{reg}(?=\s*,|\s+ИНН|\s*$)'
-    fio = re.search(res_reg, text, re.DOTALL)
-
-    if fio:
-        fio = fio.group(1).strip()
-        return fio
-    return None
+    res = re.search(reg, block)
+    return res.group(1).strip() if res else None
 
 
-def get_name_company(text: str, direction:str):
+def get_buyer_name(text: str):
+    block = _block_text(text, 'покупатель')
+    if not block:
+        return None
+    
     org_forms = r'(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|ОООО)'
-    reg = fr"(?i){direction}\s*:\s*.*?({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n|,\s*КПП)"
+    name_match = re.search(rf'({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n)', block, re.IGNORECASE)
 
-    res = re.search(reg, text, re.DOTALL)
-    if res:
-        return res.group(1).strip()
-    return None
-
+    return name_match.group(1).strip() if name_match else None
