@@ -59,6 +59,20 @@ def get_nds_procent(text: str):
     return 0 if res else None
 
 
+def get_nds_sum(text: str):
+    regs = [
+        r'(?i)(?:ндс|сумма\s+ндс|в\s+том\s+числе\s+ндс)\s*:?\s*(?<!\d)(\d+(?:[.,]\d{2})?|\d+)(?!\d)\s*(?:руб|р\.|₽)?',
+        r'(?i)(?:ндс)\s*[-–]\s*(?<!\d)(\d+(?:[.,]\d{2})?|\d+)(?!\d)'
+    ]
+    for reg in regs:
+        res= re.search(reg, text)
+        if res:
+            res_sum = res.group(1).replace(',', '.')
+            return float(res_sum)
+    
+    return None
+
+
 def get_provider_inn(text: str):
     """
     юр лицо: 10
@@ -92,7 +106,7 @@ def get_buyer_inn(text: str):
 
 def get_fio_buyer(text: str):
     buyer = r'(?:покупатель|клиент|заказчик|плательщик)'
-    reg = r"(?i)(?:покупатель|заказчик)[^А-ЯЁ]*?([А-ЯЁ][а-яё\-]+(?:\s+[А-ЯЁ][а-яё\-\.]+){1,2})"
+    reg = r"([А-ЯЁ][а-яё\-]+(?:\s+[А-ЯЁ][а-яё\-\.]+){1,2})"
 
     res_reg = rf'(?i){buyer}[^А-ЯЁ]*?{reg}(?=\s*,|\s+ИНН|\s*$)'
     fio = re.search(res_reg, text, re.DOTALL)
@@ -102,9 +116,13 @@ def get_fio_buyer(text: str):
         return fio
     return None
 
-text1 = "Счёт 4081 7810 0999 1000 0001 и 4070-2810-5000-0000-0002"
-text = "Сегодня 12.03.2025, 12 03 2025 вчера 11-03-2025, завтра 13/03/2025"
-summa = "Сумма 100.50 руб, ещё 1,99 евро и невалидные .99 или 100."
-print(get_num_account(text1))
-print(get_data(text))
-print(get_summa(summa))
+
+def get_name_company(text: str, direction:str):
+    org_forms = r'(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|ОООО)'
+    reg = fr"(?i){direction}\s*:\s*.*?({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n|,\s*КПП)"
+
+    res = re.search(reg, text, re.DOTALL)
+    if res:
+        return res.group(1).strip()
+    return None
+
