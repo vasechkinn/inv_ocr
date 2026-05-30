@@ -90,6 +90,18 @@ def get_buyer_inn(text: str):
     return res.group(1) if res else None
 
 
+def get_fio_buyer(text: str):
+    buyer = r'(?:покупатель|клиент|заказчик|плательщик)'
+    reg = r"(?i)(?:покупатель|заказчик)[^А-ЯЁ]*?([А-ЯЁ][а-яё\-]+(?:\s+[А-ЯЁ][а-яё\-\.]+){1,2})"
+
+    res_reg = rf'(?i){buyer}[^А-ЯЁ]*?{reg}(?=\s*,|\s+ИНН|\s*$)'
+    fio = re.search(res_reg, text, re.DOTALL)
+
+    if fio:
+        fio = fio.group(1).strip()
+        return fio
+    return None
+
 text1 = "Счёт 4081 7810 0999 1000 0001 и 4070-2810-5000-0000-0002"
 text = "Сегодня 12.03.2025, 12 03 2025 вчера 11-03-2025, завтра 13/03/2025"
 summa = "Сумма 100.50 руб, ещё 1,99 евро и невалидные .99 или 100."
