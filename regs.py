@@ -1,5 +1,16 @@
 import re
+from typing import Optional, List, Union
 
+def _clean_ocr_text(text: str) -> str:
+    """Замена часто встречающихся в OCR ошибочных символов"""
+    replacements = {
+        'О': '0', 'о': '0',
+        'З': '3', 'з': '3',
+        'В': '8', 'в': '8',
+    }
+    for wrong, right in replacements.items():
+        text = text.replace(wrong, right)
+    return text
 
 def get_num_account(text: str, separator=r"[ -]"):
     """
@@ -22,33 +33,51 @@ def get_data(text: str):
     11-03-2025
     13/03/2025
     """
-    reg_data = r"(?i)(?:дата|от|за)\s*:?\s*(\d{2}[ ./-]\d{2}[ ./-]\d{4})"
-    res = re.search(reg_data, text)
-    if res:
-        return res.group(1)
+    months = {
+        'января': '01', 'февраля': '02', 'марта': '03', 'апреля': '04',
+        'мая': '05', 'июня': '06', 'июля': '07', 'августа': '08',
+        'сентября': '09', 'октября': '10', 'ноября': '11', 'декабря': '12'
+    }
+    reg_mon = r'(?i)(?:дата|от|за)\s*:?\s*(\d{1,2})\s+([а-я]+)\s+(\d{4})'
+    res_mon = re.search(reg_mon, text)
+
+    if res_mon:
+        day, month_word, year = res_mon.groups()
+        month = months.get(month_word.lower())
+        if month:
+            return f"{int(day):02d}.{month}.{year}"
 
     reg = r"(?<!\d)\d{2}[ ./-]\d{2}[ ./-]\d{4}(?!\d)"
-    res_all = re.findall(reg, text)
-    return res_all[0] if res_all else None
+    res_all = re.search(reg, text)
+    if res_all:
+        return res_all.group(1).replace(' ', '.').replace('-', '.').replace('/', '.')
+    
+    return None
 
 
 def get_summa(text: str):
+    """
+    сумма платежа
+    """
     reg_rub = r"(?i)(?<!\d)(\d+[,.]\d{2})\s*(?:руб|р\.|₽)"
-    res = re.findall(reg_rub, text)
+    res = re.search(reg_rub, text)
     if res:
-        return res[0]
+        return re.sub(r'\s', '', res.group(1))
     
     reg_rub_int = r"(?i)(?<!\d)(\d+)\s*(?:руб|р\.|₽)"
-    res = re.findall(reg_rub_int, text)
+    res = re.search(reg_rub_int, text)
     if res:
-        return res[0]
+        return re.sub(r'\s', '', res.group(1))
 
     reg = r"(?<!\d)\d+[,.]\d{2}(?!\d)"
-    res_all = re.findall(reg, text)
-    return res_all[0] if res_all else None
+    res_all = re.search(reg, text)
+    return res_all.group(1) if res_all else None
 
 
 def get_nds_procent(text: str):
+    """
+    процент ндс
+    """
     regs = [
         r'(?i)ндс\s*(\d{1,3})\s*%',
         r'(?i)ндс\s*(\d{1,3})\s*проц',
@@ -59,7 +88,7 @@ def get_nds_procent(text: str):
         if res:
             return int(res.group(1))
     
-    reg_no_nds = r'(?i)без\s+ндс|ндс\s+не\s+облагается'
+    reg_no_nds = r'(?i)без\s+(ндс|налога\s*\(?ндс\)?)|ндс\s+не\s+облагается'
     res = re.search(reg_no_nds, text)
     return 0 if res else None
 
