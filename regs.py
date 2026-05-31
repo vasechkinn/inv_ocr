@@ -59,6 +59,26 @@ def get_summa(text: str):
     """
     сумма платежа
     """
+    key_patterns = [
+        r'(?i)(?:Итого|Всего\s+к\s+оплате)\s*:?\s*(?P<sum>\d[\d\s]*[,.]\d{2})',
+        r'(?i)(?:Итого|Всего\s+к\s+оплате)\s*:?\s*(?P<sum_int>\d[\d\s]*)\s*(?:руб|р\.|₽)?'
+    ]
+    for pat in key_patterns:
+        match = re.search(pat, text)
+        if match:
+            sum_str = match.group('sum') if 'sum' in match.groupdict() else match.group('sum_int')
+            if sum_str:
+                cleaned = re.sub(r'\s', '', sum_str)
+
+                if ',' not in cleaned and '.' not in cleaned:
+                    cleaned += ',00'
+                elif ',' in cleaned:
+                    pass
+                elif '.' in cleaned:
+                    cleaned = cleaned.replace('.', ',')
+
+                return cleaned
+
     reg_rub = r"(?i)(?<!\d)(\d+[,.]\d{2})\s*(?:руб|р\.|₽)"
     res = re.search(reg_rub, text)
     if res:
