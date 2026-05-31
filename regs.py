@@ -114,6 +114,9 @@ def get_nds_procent(text: str):
 
 
 def get_nds_sum(text: str):
+    """
+    сумма ндс
+    """
     regs = [
         r'(?i)(?:ндс|сумма\s+ндс|в\s+том\s+числе\s+ндс)\s*:?\s*(?<!\d)(\d+(?:[.,]\d{2})?|\d+)(?!\d)\s*(?:руб|р\.|₽)?',
         r'(?i)(?:ндс)\s*[-–]\s*(?<!\d)(\d+(?:[.,]\d{2})?|\d+)(?!\d)'
@@ -135,66 +138,104 @@ def _block_text(text: str, direction: str):
 
 def get_provider_inn(text: str):
     """
-    юр лицо: 10
-    ип: 12
+    юр лицо: 10 цифр
+    ип: 12 цифр
     """
     block = _block_text(text, 'поставщик')
     if not block:
-        return None
-    
+        block= text
+
+    clean_block = _clean_ocr_text(block)    
     reg_1 = r"(?i)ИНН\s*:?\s*(?<!\d)(\d{10}|\d{12})(?!\d)"
-    res_1 = re.search(reg_1, block)
+    res_1 = re.search(reg_1, clean_block)
 
     return res_1.group(1) if res_1 else None
 
 
 def get_provider_num_account(text: str):
+    """
+    номер счета поставщика, 20 символов
+    """
     block = _block_text(text, 'поставщик')
     if not block:
-        return None
+        block= text
+
+    clean_block = _clean_ocr_text(block)
     
-    reg = r"(?i)(?:р/с|расч[её]тны[й]\s+сч[её]т|сч[её]т\s+поставщика)\s*:?\s*(?<!\d)(\d{20})(?!\d)"
-    res = re.search(reg, block)
+    reg = r'(?i)(?:р/с|расч[её]тны[й]\s+сч[её]т|сч[её]т\s+№|сч\.\s*№|счет)\s*:?\s*(?<!\d)(\d{20})(?!\d)'
+    res = re.search(reg, clean_block)
     return res.group(1) if res else None
 
 
 def get_provider_name(text: str):
+    """
+    название компании поставщика
+    """
     block = _block_text(text, 'поставщик')
     if not block:
-        return None
+        block= text
+
+    clean_block = _clean_ocr_text(block)
     
-    org_forms = r'(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|ОООО)'
-    name_match = re.search(rf'({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n)', block, re.IGNORECASE)
+    org_forms = r'(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|Общество с ограниченной ответственностью|Закрытое акционерное общество|Открытое акционерное общество)'
+    name_match = re.search(rf'({org_forms}[^,ИНН]+?)(?=\s*,\s*ИНН|\s*$|\n)', clean_block, re.IGNORECASE)
 
     return name_match.group(1).strip() if name_match else None
 
 
 def get_buyer_inn(text: str) -> str | None:
+    """
+    инн покупателя
+    """
     block = _block_text(text, 'покупатель')
     if not block:
-        return None
+        block= text
+
+    clean_block = _clean_ocr_text(block)
     
-    inn_match = re.search(r'(?i)ИНН\s*:?\s*(?<!\d)(\d{10}|\d{12})(?!\d)', block)
+    inn_match = re.search(r'(?i)ИНН\s*:?\s*(?<!\d)(\d{10}|\d{12})(?!\d)', clean_block)
     
     return inn_match.group(1) if inn_match else None
 
 
 def get_fio_buyer(text: str):
+    """
+    фио покупателя
+    """
     block = _block_text(text, 'покупатель')
-    if not block:
-        return None
-    
-    reg = r"([А-ЯЁ][а-яё\-]+(?:\s+[А-ЯЁ][а-яё\-\.]+){1,2})"
-    res = re.search(reg, block)
-    return res.group(1).strip() if res else None
+    if block:
+        reg = r"([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+)?))"
+        res = re.search(reg, block)
+
+        if res:
+            return res.group(1).strip()
+
+    sign_patterns = [
+        r'(?i)генеральный\s+директор\s+([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+)',
+        r'(?i)директор\s+([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+)',
+        r'(?i)исполнитель\s+([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+)',
+        r'(?i)подпись\s+([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+)'
+    ]
+
+    for pattern in sign_patterns:
+        match = re.search(pattern, text)
+        if match:
+            return match.group(1).strip()
+        
+    return None
 
 
 def get_buyer_name(text: str):
+    """
+    имя организации-заказчика
+    """
     block = _block_text(text, 'покупатель')
     if not block:
-        return None
+        block= text
+
+    clean_block = _clean_ocr_text(block)
     
-    org_forms = r'(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|ОООО)'
-    name_match = re.search(rf'({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n)', block, re.IGNORECASE)
+    org_forms = r'(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|Общество с ограниченной ответственностью|Закрытое акционерное общество)'
+    name_match = re.search(rf'({org_forms}[^,ИНН]+?)(?=\s*,\s*ИНН|\s*$|\n)', clean_block, re.IGNORECASE)
 
     return name_match.group(1).strip() if name_match else None
