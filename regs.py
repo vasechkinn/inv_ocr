@@ -3,14 +3,27 @@ from typing import Optional, List, Union
 
 def _clean_ocr_text(text: str) -> str:
     """Замена часто встречающихся в OCR ошибочных символов"""
-    replacements = {
-        'О': '0', 'о': '0',
-        'З': '3', 'з': '3',
-        'В': '8', 'в': '8',
-    }
+    replacements = {'О': '0', 'о': '0', 'З': '3', 'з': '3'}
     for wrong, right in replacements.items():
         text = text.replace(wrong, right)
     return text
+
+def _extract_section(text: str, start_marker: str, end_markers: List[str]) -> Optional[str]:
+    """
+    Возвращает подстроку от start_marker (включительно) до первого из end_markers.
+    """
+    start_pos = text.lower().find(start_marker.lower())
+
+    if start_pos == -1:
+        return None
+    end_pos = len(text)
+
+    for marker in end_markers:
+        pos = text.lower().find(marker.lower(), start_pos + len(start_marker))
+        if pos != -1 and pos < end_pos:
+            end_pos = pos
+
+    return text[start_pos:end_pos].strip()
 
 def get_num_account(text: str, separator=r"[ -]"):
     """
@@ -47,7 +60,7 @@ def get_data(text: str):
         if month:
             return f"{int(day):02d}.{month}.{year}"
 
-    reg = r"(?<!\d)\d{2}[ ./-]\d{2}[ ./-]\d{4}(?!\d)"
+    reg = r'(?<!\d)(\d{2}[ ./-]\d{2}[ ./-]\d{4})(?!\d)'
     res_all = re.search(reg, text)
     if res_all:
         return res_all.group(1).replace(' ', '.').replace('-', '.').replace('/', '.')
@@ -91,7 +104,7 @@ def get_summa(text: str):
 
     reg = r"(?<!\d)\d+[,.]\d{2}(?!\d)"
     res_all = re.search(reg, text)
-    return res_all.group(1) if res_all else None
+    return res_all.group() if res_all else None
 
 
 def get_nds_procent(text: str):
@@ -130,18 +143,15 @@ def get_nds_sum(text: str):
     return None
 
 
-def _block_text(text: str, direction: str):
-    pattern = rf'(?i){direction}\s*:?\s*(.+?)(?=\n\s*(?:поставщик|покупатель|итого|всего|$))'
-    match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
-
-    return match.group(1) if match else None
+def _block_text(text: str) -> Optional[str]:
+    return _extract_section(text, 'Поставщик:', ['Покупатель', 'Итого', 'Всего', '№'])
 
 def get_provider_inn(text: str):
     """
     юр лицо: 10 цифр
     ип: 12 цифр
     """
-    block = _block_text(text, 'поставщик')
+    block = _block_text(text)
     if not block:
         block= text
 
@@ -156,7 +166,7 @@ def get_provider_num_account(text: str):
     """
     номер счета поставщика, 20 символов
     """
-    block = _block_text(text, 'поставщик')
+    block = _block_text(text)
     if not block:
         block= text
 
@@ -171,23 +181,26 @@ def get_provider_name(text: str):
     """
     название компании поставщика
     """
-    block = _block_text(text, 'поставщик')
+    block = _block_text(text)
     if not block:
         block= text
 
+    block = re.sub(r'^Поставщик:\s*', '', block, flags=re.IGNORECASE)
     clean_block = _clean_ocr_text(block)
     
     org_forms = r'(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|Общество с ограниченной ответственностью|Закрытое акционерное общество|Открытое акционерное общество)'
-    name_match = re.search(rf'({org_forms}[^,ИНН]+?)(?=\s*,\s*ИНН|\s*$|\n)', clean_block, re.IGNORECASE)
+    name_match = re.search(rf'({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n)', clean_block, re.IGNORECASE)
 
     return name_match.group(1).strip() if name_match else None
 
+def _block_buyer(text: str) -> Optional[str]:
+    return _extract_section(text, 'Покупатель:', ['Итого', 'Всего', '№', 'Руководитель', 'Бухгалтер'])
 
 def get_buyer_inn(text: str) -> str | None:
     """
     инн покупателя
     """
-    block = _block_text(text, 'покупатель')
+    block = _block_buyer(text)
     if not block:
         block= text
 
@@ -202,23 +215,29 @@ def get_fio_buyer(text: str):
     """
     фио покупателя
     """
-    block = _block_text(text, 'покупатель')
+    block = _block_buyer(text)
     if block:
-        reg = r"([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+)?))"
+        reg = r"([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]\.\s*[А-ЯЁ][а-яё]\.)"
         res = re.search(reg, block)
 
+        if not res:
+            reg = r'([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+)'
+            res = re.search(reg, block)
         if res:
             return res.group(1).strip()
 
+    end_section = text[-500:]
     sign_patterns = [
+        r'(?i)руководитель\s*/?([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]\.\s*[А-ЯЁ][а-яё]\.)',
         r'(?i)генеральный\s+директор\s+([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+)',
         r'(?i)директор\s+([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+)',
         r'(?i)исполнитель\s+([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+)',
-        r'(?i)подпись\s+([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+)'
+        r'(?i)подпись\s+([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+)',
+        r'/([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]\.\s*[А-ЯЁ][а-яё]\.)/'
     ]
 
     for pattern in sign_patterns:
-        match = re.search(pattern, text)
+        match = re.search(pattern, end_section)
         if match:
             return match.group(1).strip()
         
@@ -229,13 +248,14 @@ def get_buyer_name(text: str):
     """
     имя организации-заказчика
     """
-    block = _block_text(text, 'покупатель')
+    block = _block_buyer(text)
     if not block:
         block= text
 
+    block = re.sub(r'^Покупатель:\s*', '', block, flags=re.IGNORECASE)
     clean_block = _clean_ocr_text(block)
     
     org_forms = r'(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|Общество с ограниченной ответственностью|Закрытое акционерное общество)'
-    name_match = re.search(rf'({org_forms}[^,ИНН]+?)(?=\s*,\s*ИНН|\s*$|\n)', clean_block, re.IGNORECASE)
+    name_match = re.search(rf'({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n)', clean_block, re.IGNORECASE)
 
     return name_match.group(1).strip() if name_match else None
