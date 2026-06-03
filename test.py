@@ -56,5 +56,7 @@ def test_img(img: str):
 
 
 if __name__ == "__main__":
-    test_img("платежка.jpg")
-    
+
+    test_img("пример.jpg")
+    test_img("пример2.jpg")
+    test_img("пример3.jpg")
