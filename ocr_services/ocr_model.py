@@ -1,5 +1,6 @@
 import os
-
+os.environ["PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK"] = "1"
+os.environ["PADDLEX_HOME"] = "./paddlex_models"
 os.environ["FLAGS_use_mkldnn"] = "0"
 import logging
 from paddleocr import PaddleOCR
@@ -17,7 +18,7 @@ class OCRConfig:
     use_doc_orientation_classify: bool = True
     use_doc_unwarping: bool = False
     use_textline_orientation: bool = False
-    use_gpu: bool = False
+    use_gpu: bool = True
     # show_log: bool = False
 
 
