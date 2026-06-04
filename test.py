@@ -2,15 +2,10 @@ import sys
 import os
 from ocr_services.ocr_model import load_ocr
 from ocr_services.utils import save_byte_files, del_temp_files
-from regs import (
-    get_num_account, get_data, get_summa,
-    get_nds_procent, get_nds_sum,
-    get_provider_inn, get_provider_num_account, get_provider_name,
-    get_buyer_inn, get_fio_buyer, get_buyer_name
-)
+from regs import InvoiceDataExtractor
 
 sys.path.append(os.path.dirname(__file__))
-
+extractor = InvoiceDataExtractor()
 
 def test_img(img: str):
     with open(img, "rb") as file:
@@ -40,23 +35,23 @@ def test_img(img: str):
                 texts = []
         full_text = "\n".join(texts) if isinstance(texts, list) else str(texts)
         print(full_text)
-        print(f"Номера счетов (20 цифр): {get_num_account(full_text)}")
-        print(f"Дата: {get_data(full_text)}")
-        print(f"Сумма: {get_summa(full_text)}")
-        print(f"НДС %: {get_nds_procent(full_text)}")
-        print(f"Сумма НДС: {get_nds_sum(full_text)}")
-        print(f"ИНН поставщика: {get_provider_inn(full_text)}")
-        print(f"Р/с поставщика: {get_provider_num_account(full_text)}")
-        print(f"Название поставщика: {get_provider_name(full_text)}")
-        print(f"ИНН покупателя: {get_buyer_inn(full_text)}")
-        print(f"ФИО покупателя: {get_fio_buyer(full_text)}")
-        print(f"Название покупателя: {get_buyer_name(full_text)}")
+        print()
+        print(f"Номера счетов (20 цифр): {extractor.get_num_account(full_text)}")
+        print(f"Дата: {extractor.get_data(full_text)}")
+        print(f"Сумма: {extractor.get_summa(full_text)}")
+        print(f"НДС %: {extractor.get_nds_procent(full_text)}")
+        print(f"Сумма НДС: {extractor.get_nds_sum(full_text)}")
+        print(f"ИНН поставщика: {extractor.get_provider_inn(full_text)}")
+        print(f"Р/с поставщика: {extractor.get_provider_num_account(full_text)}")
+        print(f"Название поставщика: {extractor.get_provider_name(full_text)}")
+        print(f"ИНН покупателя: {extractor.get_buyer_inn(full_text)}")
+        print(f"ФИО покупателя: {extractor.get_fio_buyer(full_text)}")
+        print(f"Название покупателя: {extractor.get_buyer_name(full_text)}")
     else:
         print("текст не найден.")
 
 
 if __name__ == "__main__":
-
     test_img("пример.jpg")
     test_img("пример2.jpg")
     test_img("пример3.jpg")

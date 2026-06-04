@@ -1,4 +1,5 @@
 import os
+
 os.environ["PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK"] = "1"
 os.environ["PADDLEX_HOME"] = "./paddlex_models"
 os.environ["FLAGS_use_mkldnn"] = "0"
