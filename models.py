@@ -8,6 +8,7 @@ from sqlalchemy.orm import (
 from sqlalchemy import (
     String,
     ForeignKey,
+    func
 )
 from database import Base
 
@@ -29,7 +30,7 @@ class User(Base):
         String(64), unique=True, nullable=False
     )
     hashed_password: Mapped[str] = mapped_column(String(128), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(default=func.now())
 
     invoices: Mapped[List["Invoice"]] = relationship(back_populates="user")
 
