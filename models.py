@@ -5,11 +5,7 @@ from sqlalchemy.orm import (
     Mapped,
     relationship,
 )
-from sqlalchemy import (
-    String,
-    ForeignKey,
-    func
-)
+from sqlalchemy import String, ForeignKey, func
 from database import Base
 
 
