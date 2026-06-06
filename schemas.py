@@ -1,10 +1,5 @@
 from datetime import datetime, date as dt
-from pydantic import (
-    BaseModel,
-    Field,
-    field_validator,
-    model_validator,
-    )
+from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 from typing import Optional, List
 
 MAX_LEN_NAME = 256
@@ -34,13 +29,13 @@ class PaymentDetails(BaseModel):
     def validate_summa_format(cls, summ: Optional[str]) -> Optional[str]:
         if summ is None:
             return None
-        
+
         if "," not in summ and "." not in summ:
             return f"{summ},00"
-        
+
         if "." in summ:
             return summ.replace(".", ",")
-        
+
         return summ
 
     @field_validator("date", mode="before")
@@ -51,10 +46,10 @@ class PaymentDetails(BaseModel):
                 return datetime.strptime(date_, "%d.%m.%Y").date()
             except ValueError:
                 return None
-            
+
         return date_
-    
-    @field_validator('date')
+
+    @field_validator("date")
     @classmethod
     def not_future(cls, v: Optional[dt]) -> Optional[dt]:
         if v and v > dt.today():
@@ -66,11 +61,11 @@ class PaymentDetails(BaseModel):
     def validate_account(cls, acc: Optional[str]) -> Optional[str]:
         if acc is None:
             return None
-        
+
         cleaned = "".join(filter(str.isdigit, acc))
         if len(cleaned) == 20:
             return cleaned
-        
+
         return None
 
     @field_validator("provider_inn", "buyer_inn")
@@ -78,25 +73,25 @@ class PaymentDetails(BaseModel):
     def validate_inn(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return None
-        
+
         cleaned = "".join(filter(str.isdigit, v))
         if len(cleaned) in (10, 12):
             return cleaned
-        
+
         return None
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def check_nds_sum(self):
         if self.nds_sum is not None and self.total_sum is not None:
             try:
-                total = float(self.total_sum.replace(',', '.'))
+                total = float(self.total_sum.replace(",", "."))
             except (ValueError, AttributeError):
                 return self
 
             if self.nds_sum > total:
                 self.nds_sum = None
         return self
-    
+
 
 class BuyerCreate(BaseModel):
     fio: Optional[str] = Field(None, max_length=MAX_LEN_NAME)
@@ -104,10 +99,26 @@ class BuyerCreate(BaseModel):
     buyer_company: Optional[str] = Field(None, max_length=MAX_LEN_NAME)
 
 
+class BuyerResponse(BaseModel):
+    id: int
+    fio: Optional[str] = None
+    inn_b: Optional[str] = None
+    buyer_company: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
+
+
 class SupplierCreate(BaseModel):
     inn_sup: Optional[str] = Field(None, max_length=MAX_LEN_INN)
     num_acc: Optional[str] = Field(None, max_length=MAX_LEN_ACCOUNT)
     name_sup: Optional[str] = Field(None, max_length=MAX_LEN_NAME)
+
+
+class SupplierResponse(BaseModel):
+    id: int
+    inn_sup: Optional[str] = None
+    num_acc: Optional[str] = None
+    name_sup: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
 
 
 class InvoiceCreate(BaseModel):
@@ -117,6 +128,7 @@ class InvoiceCreate(BaseModel):
     nds_sum: Optional[float] = Field(None, ge=0)
     buyer_id: Optional[int] = None
     supplier_id: Optional[int] = None
+
 
 class FullOcrResult(BaseModel):
     full_text: Optional[str] = None
@@ -132,6 +144,7 @@ class FullOcrResult(BaseModel):
     buyer_fio: Optional[str] = None
     buyer_name: Optional[str] = None
 
+
 class UploadFileResponse(BaseModel):
     success: bool = True
     message: str = "Файл успешно обработан"
@@ -144,3 +157,42 @@ class ErrorResponse(BaseModel):
     message: str
     details: Optional[str] = None
 
+
+class UserCreate(BaseModel):
+    telegram_username: str = Field(..., min_length=3, max_length=64)
+    password: str = Field(..., min_length=6)
+
+
+class UserLogin(BaseModel):
+    telegram_username: str
+    password: str
+
+
+class UserResponse(BaseModel):
+    id: int
+    telegram_username: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InvoiceUpdate(BaseModel):
+    date: Optional[dt] = None
+    summa: Optional[str] = None
+    nds_percent: Optional[int] = Field(None, ge=0, le=100)
+    nds_sum: Optional[float] = Field(None, ge=0)
+
+    provider_name: Optional[str] = Field(None, max_length=MAX_LEN_NAME)
+    provider_inn: Optional[str] = Field(None, max_length=MAX_LEN_INN)
+    provider_account: Optional[str] = Field(None, max_length=MAX_LEN_ACCOUNT)
+
+    buyer_name: Optional[str] = Field(None, max_length=MAX_LEN_NAME)
+    buyer_inn: Optional[str] = Field(None, max_length=MAX_LEN_INN)
+
+
+class InvoiceResponse(InvoiceCreate):
+    id: int
+    user_id: Optional[int] = None
+    buyer: Optional[BuyerResponse] = None
+    supplier: Optional[SupplierResponse] = None
+    model_config = ConfigDict(from_attributes=True)
