@@ -106,7 +106,7 @@ def get_or_create_buyer(
     return buyer
 
 
-def create_ivoice(
+def create_invoice(
         db: Session,
         invoice_data: InvoiceCreate,
         user_id: int = None
