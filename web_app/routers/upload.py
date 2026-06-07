@@ -8,14 +8,14 @@ from ocr_services.utils import (
 from ocr_services.convert import convert_img, FileConversionError
 from regs import InvoiceDataExtractor
 from schemas import UploadFileResponse, PaymentDetails, FullOcrResult
-from ocr_services.warm_ocr import ocr_model, init_ocr
+from ocr_services import warm_ocr
 
 
 router = APIRouter(prefix="/upload", tags=["OCR"])
 ocr = InvoiceDataExtractor()
 
-if ocr_model is None:
-    init_ocr()
+if warm_ocr.ocr_model is None:
+    warm_ocr.init_ocr()
 
 
 @router.post("/", response_model=UploadFileResponse)
@@ -35,7 +35,7 @@ async def upload_file(
         except FileConversionError as e:
             raise HTTPException(status_code=400, detail=str(e))
 
-        res = ocr_model.predict(path)
+        res = warm_ocr.ocr_model.predict(path)
         if res and len(res) > 0:
             data = res[0]
             text = data.get("res", {}).get("rec_texts", []) or data.get("rec_texts", [])
