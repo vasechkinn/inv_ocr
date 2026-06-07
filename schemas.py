@@ -188,6 +188,7 @@ class InvoiceUpdate(BaseModel):
 
     buyer_name: Optional[str] = Field(None, max_length=MAX_LEN_NAME)
     buyer_inn: Optional[str] = Field(None, max_length=MAX_LEN_INN)
+    buyer_fio: Optional[str] = Field(None, max_length=MAX_LEN_NAME)
 
 
 class InvoiceResponse(InvoiceCreate):
