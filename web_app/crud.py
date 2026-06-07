@@ -104,3 +104,15 @@ def get_or_create_buyer(
     db.commit()
     db.refresh(buyer)
     return buyer
+
+
+def create_ivoice(
+        db: Session,
+        invoice_data: InvoiceCreate,
+        user_id: int = None
+) -> Invoice:
+    invoice = Invoice(**invoice_data.model_dump(), user_id=user_id)
+    db.add(invoice)
+    db.commit()
+    db.refresh(invoice)
+    return invoice
