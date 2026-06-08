@@ -28,63 +28,76 @@
             <img src="/static/img/prew.jpg">
         </div>
 
-        <div id="container_form" class="div_container">
-            <div class="text_container">
-                <h3>Отредактируйте реквизиты</h3>
-                <form id="edit_form">
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-3">
-                            <label class="form-label">Дата</label>
-                            <input type="date" class="form-control" id="date" max="" min="1990-01-01">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Сумма (₽)</label>
-                            <input type="text" class="form-control" id="summa" placeholder="1234,56">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">НДС (%)</label>
-                            <input type="number" class="form-control" id="nds_percent" min="0" step="1">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Сумма НДС (₽)</label>
-                            <input type="number" class="form-control" id="nds_sum" min="0" step="0.01">
-                        </div>
+        <div class="row mt-4" id="postUploadBlock"  style="display: none;">
+            <div class="col-12">
+                <div class="preview-container text-center">
+                    <h5>Загруженный документ</h5>
+                    <div id="preview-area" class="border rounded p-2 bg-light">
+                        <img id="preview_image" src="" class="img-fluid" alt="Предпросмотр">
                     </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div id="container_form" class="div_container">
+                    <div class="text_container">
+                        <h3>Отредактируйте реквизиты</h3>
+                        <form id="edit_form">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Дата</label>
+                                    <input type="date" class="form-control" id="date" max="" min="1990-01-01">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Сумма (₽)</label>
+                                    <input type="text" class="form-control" id="summa" placeholder="1234,56">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">НДС (%)</label>
+                                    <input type="number" class="form-control" id="nds_percent" min="0" step="1">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Сумма НДС (₽)</label>
+                                    <input type="number" class="form-control" id="nds_sum" min="0" step="0.01">
+                                </div>
+                            </div>
 
-                    <h5>Поставщик</h5>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label">Название</label>
-                            <input type="text" class="form-control" id="provider_name">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">ИНН</label>
-                            <input type="text" class="form-control" id="provider_inn">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Расчётный счёт</label>
-                            <input type="text" class="form-control" id="provider_account">
-                        </div>
+                            <h5>Поставщик</h5>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Название</label>
+                                    <input type="text" class="form-control" id="provider_name">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">ИНН</label>
+                                    <input type="text" class="form-control" id="provider_inn">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Расчётный счёт</label>
+                                    <input type="text" class="form-control" id="provider_account">
+                                </div>
+                            </div>
+
+                            <h5>Покупатель</h5>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label">Название</label>
+                                    <input type="text" class="form-control" id="buyer_name">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">ИНН</label>
+                                    <input type="text" class="form-control" id="buyer_inn">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">ФИО (физлицо)</label>
+                                    <input type="text" class="form-control" id="buyer_fio">
+                                </div>
+                            </div>
+
+                            <button type="submit" id="save_btn">Сохранить</button>
+                            <button type="button" id="clearBtn" class="btn btn-outline-secondary">Очистить</button>
+                        </form>
                     </div>
-
-                    <h5>Покупатель</h5>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-4">
-                            <label class="form-label">Название</label>
-                            <input type="text" class="form-control" id="buyer_name">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">ИНН</label>
-                            <input type="text" class="form-control" id="buyer_inn">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">ФИО (физлицо)</label>
-                            <input type="text" class="form-control" id="buyer_fio">
-                        </div>
-                    </div>
-
-                    <button type="submit" id="save_btn">Сохранить</button>
-                </form>
+                </div>
             </div>
         </div>
 
@@ -97,9 +110,7 @@
                     </div>
                     <div class="modal-body">
                         <p>Скопируйте результат</p>
-                        <textarea 
-                            id="copyText" class="form-control font-monospace" 
-                            rows="12" readonly>
+                        <textarea id="copyText" class="form-control font-monospace" rows="12" readonly>
                         </textarea>
                     </div>
                     <div class="modal-footer">
