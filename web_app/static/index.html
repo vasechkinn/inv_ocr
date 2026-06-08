@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Счёт — распознавание и редактирование</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="div_container">
+        <div class="text_container">
+            <h1 class="prew_text">Извлечение текста с изображения</h1>
+            <h4 class="info_text">
+                Загрузите счёт в формате изображения или PDF.
+                Система распознает основные реквизиты: дату, сумму, НДС, ИНН и названия поставщика и покупателя, номер
+                счёта поставщика
+            </h4>
+            <div class="input-group">
+                <input type="file" class="form-control" id="fileInput" aria-describedby="inputGroupFileAddon04"
+                    aria-label="Upload">
+                <button class="btn btn-outline-secondary" type="button" id="buttonUpload">Начать
+                    обработку</button>
+            </div>
+            <img src="/static/img/prew.jpg">
+        </div>
+
+        <div id="edit_form" class="div_container">
+            <div class="text_container">
+                <h3>Отредактируйте реквизиты</h3>
+                <form id="editForm">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Дата</label>
+                            <input type="date" class="form-control" id="date" max="" min="1990-01-01">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Сумма (₽)</label>
+                            <input type="text" class="form-control" id="summa" placeholder="1234,56">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">НДС (%)</label>
+                            <input type="number" step="1" class="form-control" id="nds_percent" min="0" step="1">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Сумма НДС (₽)</label>
+                            <input type="number" class="form-control" id="nds_sum" min="0" step="0.1">
+                        </div>
+                    </div>
+
+                    <h5>Поставщик</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Название</label>
+                            <input type="text" class="form-control" id="provider_name">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">ИНН</label>
+                            <input type="text" class="form-control" id="provider_inn">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Расчётный счёт</label>
+                            <input type="text" class="form-control" id="provider_account">
+                        </div>
+                    </div>
+
+                    <h5>Покупатель</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Название</label>
+                            <input type="text" class="form-control" id="buyer_name">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">ИНН</label>
+                            <input type="text" class="form-control" id="buyer_inn">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">ФИО (физлицо)</label>
+                            <input type="text" class="form-control" id="buyer_fio">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="saveBtn">Сохранить</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/scripts.js"></script>
+</body>
+
+</html>
