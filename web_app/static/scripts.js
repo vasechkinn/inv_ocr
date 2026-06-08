@@ -16,6 +16,9 @@ const buyerFioField = document.getElementById("buyer_fio");
 const copyModalEl = document.getElementById("copyModal");
 const copyTextarea = document.getElementById("copyText");
 const copyBtn = document.getElementById("copyBtn");
+const clearBtn = document.getElementById("clearBtn");
+const previewImg = document.getElementById("preview_image");
+const noImagePlaceholder = document.getElementById("no-image-placeholder");
 
 if (editorContainer) {
   editorContainer.style.display = "none";
@@ -164,3 +167,24 @@ if (copyBtn && copyTextarea) {
         }
     });
 }
+
+if (fileInput && previewImg) {
+    fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith("image/")) {
+            const url = URL.createObjectURL(file);
+            previewImg.src = url;
+            previewImg.style.display = "block";
+            previewImg.onload = () => URL.revokeObjectURL(url);
+        } else if (file && file.type === "application/pdf") {
+            previewImg.src = "/static/img/pdf-icon.png";
+            previewImg.style.display = "block";
+        } else {
+            // Ничего не показываем
+            previewImg.src = "";
+            previewImg.style.display = "none";
+        }
+    });
+}
+
+
