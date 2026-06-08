@@ -7,6 +7,7 @@ from regs import InvoiceDataExtractor
 sys.path.append(os.path.dirname(__file__))
 extractor = InvoiceDataExtractor()
 
+
 def test_img(img: str):
     with open(img, "rb") as file:
         img_bytes = file.read()

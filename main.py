@@ -9,10 +9,12 @@ from fastapi.responses import FileResponse
 
 Base.metadata.create_all(bind=engine)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_ocr()
     yield
+
 
 app = FastAPI(title="OCR Invoice Parser", lifespan=lifespan)
 
@@ -20,6 +22,7 @@ app.mount("/static", StaticFiles(directory="web_app/static"), name="static")
 
 app.include_router(upload.router)
 app.include_router(save.router)
+
 
 @app.get("/")
 async def index():
