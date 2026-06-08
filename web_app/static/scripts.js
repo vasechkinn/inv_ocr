@@ -1,6 +1,6 @@
 const fileInput = document.getElementById("file_input");
 const uploadBtn = document.getElementById("button_upload");
-const editorContainer = document.getElementById("container_form");
+const editorContainer = document.getElementById("postUploadBlock");
 const editForm = document.getElementById("edit_form");
 const saveBtn = document.getElementById("save_btn");
 const dateField = document.getElementById("date");
@@ -180,11 +180,32 @@ if (fileInput && previewImg) {
             previewImg.src = "/static/img/pdf-icon.png";
             previewImg.style.display = "block";
         } else {
-            // Ничего не показываем
             previewImg.src = "";
             previewImg.style.display = "none";
         }
     });
 }
 
+if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+        if (dateField) dateField.value = "";
+        if (summaField) summaField.value = "";
+        if (ndsPercentField) ndsPercentField.value = "";
+        if (ndsSumField) ndsSumField.value = "";
+        if (providerNameField) providerNameField.value = "";
+        if (providerInnField) providerInnField.value = "";
+        if (providerAccountField) providerAccountField.value = "";
+        if (buyerNameField) buyerNameField.value = "";
+        if (buyerInnField) buyerInnField.value = "";
+        if (buyerFioField) buyerFioField.value = "";
 
+        if (fileInput) fileInput.value = "";
+
+        if (previewImg) {
+            previewImg.src = "";
+            previewImg.style.display = "none";
+        }
+
+        if (editorContainer) editorContainer.style.display = "none";
+    });
+}
