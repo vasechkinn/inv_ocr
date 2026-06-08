@@ -67,7 +67,7 @@ async def save_inv(
             "success": True,
             "message": "Счёт сохранён",
             "invoice": response.model_dump(),
-            "copy_text": json.dumps(response.model_dump(), ensure_ascii=False, indent=2)
+            "copy_text": response.model_dump_json(ensure_ascii=False, indent=2)
         }
 
     except Exception as e:
