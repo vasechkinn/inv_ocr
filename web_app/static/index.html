@@ -20,18 +20,18 @@
                 счёта поставщика
             </h4>
             <div class="input-group">
-                <input type="file" class="form-control" id="fileInput" aria-describedby="inputGroupFileAddon04"
+                <input type="file" class="form-control" id="file_input" aria-describedby="inputGroupFileAddon04"
                     aria-label="Upload">
-                <button class="btn btn-outline-secondary" type="button" id="buttonUpload">Начать
+                <button class="btn btn-outline-secondary" type="button" id="button_upload">Начать
                     обработку</button>
             </div>
             <img src="/static/img/prew.jpg">
         </div>
 
-        <div id="edit_form" class="div_container">
+        <div id="container_form" class="div_container">
             <div class="text_container">
                 <h3>Отредактируйте реквизиты</h3>
-                <form id="editForm">
+                <form id="edit_form">
                     <div class="row g-3 mb-3">
                         <div class="col-md-3">
                             <label class="form-label">Дата</label>
@@ -83,8 +83,30 @@
                         </div>
                     </div>
 
-                    <button type="submit" id="saveBtn">Сохранить</button>
+                    <button type="submit" id="save_btn">Сохранить</button>
                 </form>
+            </div>
+        </div>
+
+        <div class="modal" tabindex="-1" id="copyModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Текст добавлен</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Скопируйте результат</p>
+                        <textarea 
+                            id="copyText" class="form-control font-monospace" 
+                            rows="12" readonly style="background: #f8f9fa;">
+                        </textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        <button type="button" class="btn btn-primary" id="copyBtn">Копировать</button>
+                    </div>
+                </div>
             </div>
         </div>
 
