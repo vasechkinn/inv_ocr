@@ -12,20 +12,23 @@
 
 <body>
     <div class="div_container">
-        <div class="text_container">
-            <h1 class="prew_text">Извлечение текста с изображения</h1>
-            <h4 class="info_text">
-                Загрузите счёт в формате изображения или PDF.
-                Система распознает основные реквизиты: дату, сумму, НДС, ИНН и названия поставщика и покупателя, номер
-                счёта поставщика
-            </h4>
-            <div class="upload-area">
-                <label for="file_input" class="custom-file-button">Выберите файл</label>
-                <input type="file" id="file_input" accept="image/*,application/pdf" style="display: none;">
-                <span id="file_name" class="file-name-text">Файл не выбран</span>
-                <button class="btn btn-outline-secondary" type="button" id="button_upload">Начать обработку</button>
+        <div class="full-width-bg">
+            <div class="text_container">
+                <h1 class="prew_text">Извлечение текста с изображения</h1>
+                <h4 class="info_text">
+                    Загрузите счёт в формате изображения или PDF.
+                    Система распознает основные реквизиты: дату, сумму, НДС, ИНН и названия поставщика и покупателя,
+                    номер
+                    счёта поставщика
+                </h4>
+                <div class="upload-area">
+                    <label for="file_input" class="custom-file-button">Выберите файл</label>
+                    <input type="file" id="file_input" accept="image/*,application/pdf" style="display: none;">
+                    <span id="file_name" class="file-name-text">Файл не выбран</span>
+                    <button class="btn btn-outline-secondary" type="button" id="button_upload">Начать обработку</button>
+                </div>
+                <img src="/static/img/rew.jpg">
             </div>
-            <img src="/static/img/rew.jpg">
         </div>
 
         <div class="row mt-4" id="postUploadBlock" style="display: none;">
@@ -39,7 +42,7 @@
             </div>
             <div class="col-12">
                 <div id="container_form" class="div_container">
-                    <div class="text_container">
+                    <div class="">
                         <h3>Отредактируйте реквизиты</h3>
                         <form id="edit_form">
                             <div class="row g-3 mb-3">
@@ -93,7 +96,7 @@
                                 </div>
                             </div>
 
-                            <button type="submit" id="save_btn">Сохранить</button>
+                            <button type="submit" id="save_btn" class="btn btn-outline-success">Сохранить</button>
                             <button type="button" id="clearBtn" class="btn btn-outline-secondary">Очистить</button>
                         </form>
                     </div>
