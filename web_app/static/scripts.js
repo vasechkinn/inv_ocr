@@ -19,16 +19,16 @@ const copyBtn = document.getElementById("copyBtn");
 const clearBtn = document.getElementById("clearBtn");
 const previewImg = document.getElementById("preview_image");
 const noImagePlaceholder = document.getElementById("no-image-placeholder");
-const fileNameSpan = document.getElementById('file_name');
+const fileNameSpan = document.getElementById("file_name");
 
 if (fileInput && fileNameSpan) {
-    fileInput.addEventListener('change', function() {
-        if (this.files && this.files.length > 0) {
-            fileNameSpan.textContent = this.files[0].name;
-        } else {
-            fileNameSpan.textContent = 'Файл не выбран';
-        }
-    });
+  fileInput.addEventListener("change", function () {
+    if (this.files && this.files.length > 0) {
+      fileNameSpan.textContent = this.files[0].name;
+    } else {
+      fileNameSpan.textContent = "Файл не выбран";
+    }
+  });
 }
 if (editorContainer) {
   editorContainer.style.display = "none";
@@ -167,55 +167,82 @@ if (editForm && saveBtn) {
   });
 }
 
-if (copyBtn && copyTextarea) {
-    copyBtn.addEventListener('click', async () => {
-        try {
-            await navigator.clipboard.writeText(copyTextarea.value);
-            alert('Текст скопирован в буфер обмена');
-        } catch (err) {
-            alert('Не удалось скопировать текст')
+if (summaField) {
+  summaField.addEventListener("keydown", function (e) {
+    if (e.key === "-" || e.key === "Minus" || e.key === "е" || e.key === "–") {
+      e.preventDefault();
+      alert("Отрицательная сумма не допускается");
+    }
+  });
+  
+  summaField.addEventListener('input', function() {
+        let val = this.value.replace(',', '.');
+        let num = parseFloat(val);
+        if (isNaN(num) || num < 0) {
+            this.setCustomValidity('Сумма не может быть отрицательной');
+        } else {
+            this.setCustomValidity('');
         }
     });
+
+  summaField.addEventListener("paste", function (e) {
+    let pasted = (e.clipboardData || window.clipboardData).getData("text");
+    if (pasted.includes("-")) {
+      e.preventDefault();
+      alert("Вставка отрицательного числа запрещена");
+    }
+  });
+}
+
+if (copyBtn && copyTextarea) {
+  copyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(copyTextarea.value);
+      alert("Текст скопирован в буфер обмена");
+    } catch (err) {
+      alert("Не удалось скопировать текст");
+    }
+  });
 }
 
 if (fileInput && previewImg) {
-    fileInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (file && file.type.startsWith("image/")) {
-            const url = URL.createObjectURL(file);
-            previewImg.src = url;
-            previewImg.style.display = "block";
-            previewImg.onload = () => URL.revokeObjectURL(url);
-        } else if (file && file.type === "application/pdf") {
-            previewImg.src = "/static/img/pdf-icon.png";
-            previewImg.style.display = "block";
-        } else {
-            previewImg.src = "";
-            previewImg.style.display = "none";
-        }
-    });
+  fileInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith("image/")) {
+      const url = URL.createObjectURL(file);
+      previewImg.src = url;
+      previewImg.style.display = "block";
+      previewImg.onload = () => URL.revokeObjectURL(url);
+    } else if (file && file.type === "application/pdf") {
+      previewImg.src = "/static/img/pdf-icon.png";
+      previewImg.style.display = "block";
+    } else {
+      previewImg.src = "";
+      previewImg.style.display = "none";
+    }
+  });
 }
 
 if (clearBtn) {
-    clearBtn.addEventListener("click", () => {
-        if (dateField) dateField.value = "";
-        if (summaField) summaField.value = "";
-        if (ndsPercentField) ndsPercentField.value = "";
-        if (ndsSumField) ndsSumField.value = "";
-        if (providerNameField) providerNameField.value = "";
-        if (providerInnField) providerInnField.value = "";
-        if (providerAccountField) providerAccountField.value = "";
-        if (buyerNameField) buyerNameField.value = "";
-        if (buyerInnField) buyerInnField.value = "";
-        if (buyerFioField) buyerFioField.value = "";
+  clearBtn.addEventListener("click", () => {
+    if (dateField) dateField.value = "";
+    if (summaField) summaField.value = "";
+    if (ndsPercentField) ndsPercentField.value = "";
+    if (ndsSumField) ndsSumField.value = "";
+    if (providerNameField) providerNameField.value = "";
+    if (providerInnField) providerInnField.value = "";
+    if (providerAccountField) providerAccountField.value = "";
+    if (buyerNameField) buyerNameField.value = "";
+    if (buyerInnField) buyerInnField.value = "";
+    if (buyerFioField) buyerFioField.value = "";
 
-        if (fileInput) fileInput.value = "";
+    if (fileInput) fileInput.value = "";
 
-        if (previewImg) {
-            previewImg.src = "";
-            previewImg.style.display = "none";
-        }
+    if (previewImg) {
+      previewImg.src = "";
+      previewImg.style.display = "none";
+    }
 
-        if (editorContainer) editorContainer.style.display = "none";
-    });
+    if (editorContainer) editorContainer.style.display = "none";
+  });
 }
