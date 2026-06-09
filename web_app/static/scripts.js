@@ -19,7 +19,17 @@ const copyBtn = document.getElementById("copyBtn");
 const clearBtn = document.getElementById("clearBtn");
 const previewImg = document.getElementById("preview_image");
 const noImagePlaceholder = document.getElementById("no-image-placeholder");
+const fileNameSpan = document.getElementById('file_name');
 
+if (fileInput && fileNameSpan) {
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+            fileNameSpan.textContent = this.files[0].name;
+        } else {
+            fileNameSpan.textContent = 'Файл не выбран';
+        }
+    });
+}
 if (editorContainer) {
   editorContainer.style.display = "none";
 }
