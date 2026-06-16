@@ -85,17 +85,17 @@ def get_or_create_buyer(
     buyer_data: BuyerCreate,
 ) -> Buyer:
     if buyer_data.inn_b:
-        buyer = _find_buyer(db, buyer_data.inn_b)
+        buyer = _find_buyer(db, inn=buyer_data.inn_b)
         if buyer:
             return buyer
 
     if buyer_data.buyer_company:
-        buyer = _find_buyer(db, buyer_data.buyer_company)
+        buyer = _find_buyer(db, name=buyer_data.buyer_company)
         if buyer:
             return buyer
 
     if buyer_data.fio:
-        buyer = _find_buyer(db, buyer_data.fio)
+        buyer = _find_buyer(db, fio=buyer_data.fio)
         if buyer:
             return buyer
 
