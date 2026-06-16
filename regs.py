@@ -198,10 +198,9 @@ class InvoiceDataExtractor:
         if not block:
             block = text
         block = re.sub(r"^Поставщик:\s*", "", block, flags=re.IGNORECASE)
-        clean_block = self._clean_ocr_text(block)
         org_forms = r"(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|Общество с ограниченной ответственностью|Закрытое акционерное общество|Открытое акционерное общество)"
         name_match = re.search(
-            rf"({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n)", clean_block, re.IGNORECASE
+            rf"({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n)", block, re.IGNORECASE
         )
         return name_match.group(1).strip() if name_match else None
 
@@ -255,10 +254,9 @@ class InvoiceDataExtractor:
         if not block:
             block = text
         block = re.sub(r"^Покупатель:\s*", "", block, flags=re.IGNORECASE)
-        clean_block = self._clean_ocr_text(block)
         org_forms = r"(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|Общество с ограниченной ответственностью|Закрытое акционерное общество)"
         name_match = re.search(
-            rf"({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n)", clean_block, re.IGNORECASE
+            rf"({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n)", block, re.IGNORECASE
         )
         return name_match.group(1).strip() if name_match else None
 
