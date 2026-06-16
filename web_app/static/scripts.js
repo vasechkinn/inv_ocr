@@ -2,6 +2,10 @@ const API_AUTH = "/api/auth";
 let currentUser = null;
 let myDocsPage = 1;
 let isLoginForm = true;
+let uploadQueue = [];
+let queueIndex = 0;
+let currentPreviewUrl = null;
+let loadedInvoices = [];
 
 function getAuthToken() {
   return localStorage.getItem("auth_token");
@@ -302,6 +306,8 @@ function renderInvoicesList(data) {
   const listEl = document.getElementById("invoices_list");
   if (!listEl) return;
 
+  loadedInvoices = data.invoices || [];
+
   if (!data.invoices || data.invoices.length === 0) {
     listEl.innerHTML = '<div class="alert alert-info">У вас пока нет сохранённых документов</div>';
     return;
@@ -317,7 +323,18 @@ function renderInvoicesList(data) {
           <strong>Сумма:</strong> ${inv.summ ? inv.summ + " ₽" : "—"} &nbsp;
           <strong>НДС:</strong> ${inv.nds_percent || "—"}%
         </div>
-        <small class="text-muted">#${inv.id}</small>
+        <div class="d-flex align-items-center gap-2">
+          <small class="text-muted">#${inv.id}</small>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Копировать
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="#" data-copy-inv="${inv.id}">Копировать текст</a></li>
+              <li><a class="dropdown-item" href="#" data-excel-inv="${inv.id}">Скачать Excel</a></li>
+            </ul>
+          </div>
+        </div>
       </div>
       <div class="mt-1">
         <small>
@@ -377,10 +394,14 @@ const clearBtn = document.getElementById("clearBtn");
 const previewImg = document.getElementById("preview_image");
 const noImagePlaceholder = document.getElementById("no-image-placeholder");
 const fileNameSpan = document.getElementById("file_name");
+const queueProgress = document.getElementById("queue_progress");
+const previewPlaceholder = document.getElementById("preview_placeholder");
 
 if (fileInput && fileNameSpan) {
   fileInput.addEventListener("change", function () {
-    if (this.files && this.files.length > 0) {
+    if (this.files && this.files.length > 1) {
+      fileNameSpan.textContent = `Выбрано файлов: ${this.files.length}`;
+    } else if (this.files && this.files.length === 1) {
       fileNameSpan.textContent = this.files[0].name;
     } else {
       fileNameSpan.textContent = "Файл не выбран";
@@ -396,55 +417,102 @@ if (dateField) {
   dateField.setAttribute("max", now);
 }
 
+function fillForm(pd, fullText) {
+  if (dateField) dateField.value = pd.date || "";
+  if (summaField) summaField.value = pd.total_sum || "";
+  if (ndsPercentField) ndsPercentField.value = pd.nds_percent ?? "";
+  if (ndsSumField) ndsSumField.value = pd.nds_sum ?? "";
+  if (providerNameField) providerNameField.value = pd.provider_name || "";
+  if (providerInnField) providerInnField.value = pd.provider_inn || "";
+  if (providerAccountField) providerAccountField.value = pd.provider_account || "";
+  if (buyerNameField) buyerNameField.value = pd.buyer_name || "";
+  if (buyerInnField) buyerInnField.value = pd.buyer_inn || "";
+  if (buyerFioField) buyerFioField.value = fullText?.buyer_fio || "";
+}
+
+function showPreview(file) {
+  if (currentPreviewUrl) {
+    URL.revokeObjectURL(currentPreviewUrl);
+    currentPreviewUrl = null;
+  }
+  if (file && file.type && file.type.startsWith("image/")) {
+    currentPreviewUrl = URL.createObjectURL(file);
+    if (previewImg) {
+      previewImg.src = currentPreviewUrl;
+      previewImg.style.display = "block";
+    }
+    if (previewPlaceholder) previewPlaceholder.style.display = "none";
+  } else {
+    if (previewImg) {
+      previewImg.src = "";
+      previewImg.style.display = "none";
+    }
+    if (previewPlaceholder) {
+      previewPlaceholder.textContent = file ? file.name : "";
+      previewPlaceholder.style.display = "block";
+    }
+  }
+}
+
+function updateQueueProgress() {
+  if (!queueProgress) return;
+  if (uploadQueue.length > 1) {
+    queueProgress.textContent = `Документ ${queueIndex + 1} из ${uploadQueue.length}`;
+  } else {
+    queueProgress.textContent = "";
+  }
+}
+
+async function processQueueItem() {
+  const file = uploadQueue[queueIndex];
+  if (!file) return;
+
+  showPreview(file);
+  updateQueueProgress();
+  fillForm({}, {});
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const btnText = uploadBtn.innerHTML;
+  uploadBtn.disabled = true;
+  uploadBtn.innerHTML =
+    '<span class="spinner-border spinner-border-sm me-1"></span> Обработка...';
+
+  try {
+    const response = await fetch("/upload/", {
+      method: "POST",
+      body: formData,
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.detail || "Ошибка распознавания");
+    }
+
+    const data = await response.json();
+    fillForm(data.payment_details, data.full_text);
+
+    if (editorContainer) {
+      editorContainer.style.display = "block";
+      editorContainer.scrollIntoView({ behavior: "smooth" });
+    }
+  } catch (err) {
+    alert("Ошибка: " + err.message);
+  } finally {
+    uploadBtn.disabled = false;
+    uploadBtn.innerHTML = btnText;
+  }
+}
+
 if (uploadBtn && fileInput) {
   uploadBtn.addEventListener("click", async () => {
     if (!fileInput.files.length) {
       alert("Для обработки необходимо загрузить изображение или PDF");
       return;
     }
-    const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
-
-    const btnText = uploadBtn.innerHTML;
-    uploadBtn.disabled = true;
-    uploadBtn.innerHTML =
-      '<span class="spinner-border spinner-border-sm me-1"></span> Обработка...';
-
-    try {
-      const response = await fetch("/upload/", {
-        method: "POST",
-        body: formData,
-      });
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.detail || "Ошибка распознавания");
-      }
-
-      const data = await response.json();
-      const pd = data.payment_details;
-
-      if (dateField) dateField.value = pd.date || "";
-      if (summaField) summaField.value = pd.total_sum || "";
-      if (ndsPercentField) ndsPercentField.value = pd.nds_percent ?? "";
-      if (ndsSumField) ndsSumField.value = pd.nds_sum ?? "";
-      if (providerNameField) providerNameField.value = pd.provider_name || "";
-      if (providerInnField) providerInnField.value = pd.provider_inn || "";
-      if (providerAccountField)
-        providerAccountField.value = pd.provider_account || "";
-      if (buyerNameField) buyerNameField.value = pd.buyer_name || "";
-      if (buyerInnField) buyerInnField.value = pd.buyer_inn || "";
-      if (buyerFioField) buyerFioField.value = data.full_text?.buyer_fio || "";
-
-      if (editorContainer) {
-        editorContainer.style.display = "block";
-        editorContainer.scrollIntoView({ behavior: "smooth" });
-      }
-    } catch (err) {
-      alert("Ошибка: " + err.message);
-    } finally {
-      uploadBtn.disabled = false;
-      uploadBtn.innerHTML = btnText;
-    }
+    uploadQueue = Array.from(fileInput.files);
+    queueIndex = 0;
+    await processQueueItem();
   });
 }
 
@@ -532,20 +600,29 @@ if (editForm && saveBtn) {
       if (copyTextarea) {
         copyTextarea.value = userText;
       }
-      if (copyModalEl && window.bootstrap) {
-        const modalWin = new bootstrap.Modal(copyModalEl);
 
-        copyModalEl.addEventListener(
-          "shown.bs.modal",
-          () => {
-            copyTextarea?.focus();
-          },
-          { once: true }
-        );
+      if (queueIndex < uploadQueue.length - 1) {
+        queueIndex++;
+        await processQueueItem();
+      } else {
+        if (copyModalEl && window.bootstrap) {
+          const modalWin = new bootstrap.Modal(copyModalEl);
 
-        modalWin.show();
-      } else if (copyModalEl) {
-        copyModalEl.style.display = "block";
+          copyModalEl.addEventListener(
+            "shown.bs.modal",
+            () => {
+              copyTextarea?.focus();
+            },
+            { once: true }
+          );
+
+          modalWin.show();
+        } else if (copyModalEl) {
+          copyModalEl.style.display = "block";
+        }
+        uploadQueue = [];
+        queueIndex = 0;
+        updateQueueProgress();
       }
     } catch (err) {
       alert("Ошибка при сохранении: " + err.message);
@@ -661,13 +738,220 @@ if (clearBtn) {
     if (fileInput) fileInput.value = "";
     if (fileNameSpan) fileNameSpan.textContent = "Файл не выбран";
 
+    if (currentPreviewUrl) {
+      URL.revokeObjectURL(currentPreviewUrl);
+      currentPreviewUrl = null;
+    }
     if (previewImg) {
       previewImg.src = "";
       previewImg.style.display = "none";
     }
+    if (previewPlaceholder) {
+      previewPlaceholder.textContent = "";
+      previewPlaceholder.style.display = "none";
+    }
+
+    uploadQueue = [];
+    queueIndex = 0;
+    if (queueProgress) queueProgress.textContent = "";
 
     if (editorContainer) editorContainer.style.display = "none";
   });
 }
+
+function collectFormReqs() {
+  const getVal = (id) => document.getElementById(id)?.value || "";
+  return {
+    date: getVal("date"),
+    summa: getVal("summa"),
+    nds_percent: getVal("nds_percent"),
+    nds_sum: getVal("nds_sum"),
+    provider_name: getVal("provider_name"),
+    provider_inn: getVal("provider_inn"),
+    provider_account: getVal("provider_account"),
+    buyer_name: getVal("buyer_name"),
+    buyer_inn: getVal("buyer_inn"),
+    buyer_fio: getVal("buyer_fio"),
+  };
+}
+
+function mapInvoiceToReqs(inv) {
+  return {
+    date: inv.date,
+    summa: inv.summ,
+    nds_percent: inv.nds_percent,
+    nds_sum: inv.nds_sum,
+    provider_name: inv.supplier?.name_sup,
+    provider_inn: inv.supplier?.inn_sup,
+    provider_account: inv.supplier?.num_acc,
+    buyer_name: inv.buyer?.buyer_company,
+    buyer_inn: inv.buyer?.inn_b,
+    buyer_fio: inv.buyer?.fio,
+  };
+}
+
+function reqsToRows(data) {
+  const cell = (v) => (v === null || v === undefined ? "" : v);
+  return [
+    ["Поле", "Значение"],
+    ["Дата", cell(data.date)],
+    ["Сумма", cell(data.summa)],
+    ["НДС (%)", cell(data.nds_percent)],
+    ["Сумма НДС", cell(data.nds_sum)],
+    ["Поставщик — Название", cell(data.provider_name)],
+    ["Поставщик — ИНН", cell(data.provider_inn)],
+    ["Поставщик — Расчётный счёт", cell(data.provider_account)],
+    ["Покупатель — Название", cell(data.buyer_name)],
+    ["Покупатель — ИНН", cell(data.buyer_inn)],
+    ["Покупатель — ФИО", cell(data.buyer_fio)],
+  ];
+}
+
+function exportReqsToExcel(data, filename) {
+  if (typeof XLSX === "undefined") {
+    alert("Библиотека Excel не загружена. Проверьте подключение к интернету.");
+    return;
+  }
+  const ws = XLSX.utils.aoa_to_sheet(reqsToRows(data));
+  ws["!cols"] = [{ wch: 28 }, { wch: 40 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Реквизиты");
+  XLSX.writeFile(wb, filename || "rekvizity.xlsx");
+}
+
+function reqsToText(data) {
+  return `Дата: ${data.date || "—"}
+Сумма: ${data.summa ?? "—"} руб.
+НДС (%): ${data.nds_percent ?? "—"}
+Сумма НДС: ${data.nds_sum ?? "—"} руб.
+
+Поставщик:
+  - Название: ${data.provider_name || "—"}
+  - ИНН: ${data.provider_inn || "—"}
+  - Расчётный счёт: ${data.provider_account || "—"}
+
+Покупатель:
+  - Название: ${data.buyer_name || "—"}
+  - ИНН: ${data.buyer_inn || "—"}
+  - ФИО: ${data.buyer_fio || "—"}`.trim();
+}
+
+async function copyInvoiceText(inv) {
+  try {
+    await navigator.clipboard.writeText(reqsToText(mapInvoiceToReqs(inv)));
+    alert("Реквизиты счёта скопированы");
+  } catch (err) {
+    alert("Не удалось скопировать текст");
+  }
+}
+
+function invoicesToRows(invoices) {
+  const cell = (v) => (v === null || v === undefined ? "" : v);
+  const rows = [
+    [
+      "ID",
+      "Дата",
+      "Сумма",
+      "НДС (%)",
+      "Сумма НДС",
+      "Поставщик",
+      "ИНН поставщика",
+      "Расчётный счёт",
+      "Покупатель",
+      "ИНН покупателя",
+      "ФИО",
+    ],
+  ];
+  invoices.forEach((inv) => {
+    rows.push([
+      cell(inv.id),
+      cell(inv.date),
+      cell(inv.summ),
+      cell(inv.nds_percent),
+      cell(inv.nds_sum),
+      cell(inv.supplier?.name_sup),
+      cell(inv.supplier?.inn_sup),
+      cell(inv.supplier?.num_acc),
+      cell(inv.buyer?.buyer_company),
+      cell(inv.buyer?.inn_b),
+      cell(inv.buyer?.fio),
+    ]);
+  });
+  return rows;
+}
+
+async function fetchAllInvoices() {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Необходимо авторизоваться");
+  }
+  let page = 1;
+  const all = [];
+  while (true) {
+    const res = await fetch(`/save/my-invoices?page=${page}&limit=100`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      if (res.status === 401) {
+        clearAuthToken();
+        updateAuthUI();
+      }
+      throw new Error("Ошибка загрузки документов");
+    }
+    const data = await res.json();
+    all.push(...(data.invoices || []));
+    if (!data.has_more || !(data.invoices || []).length) break;
+    page++;
+  }
+  return all;
+}
+
+document.getElementById("exportExcelBtn")?.addEventListener("click", () => {
+  exportReqsToExcel(collectFormReqs(), "rekvizity.xlsx");
+});
+
+document.addEventListener("click", (e) => {
+  const copyEl = e.target.closest("[data-copy-inv]");
+  if (copyEl) {
+    e.preventDefault();
+    const id = parseInt(copyEl.getAttribute("data-copy-inv"));
+    const inv = loadedInvoices.find((x) => x.id === id);
+    if (inv) copyInvoiceText(inv);
+  }
+  const excelEl = e.target.closest("[data-excel-inv]");
+  if (excelEl) {
+    e.preventDefault();
+    const id = parseInt(excelEl.getAttribute("data-excel-inv"));
+    const inv = loadedInvoices.find((x) => x.id === id);
+    if (inv) exportReqsToExcel(mapInvoiceToReqs(inv), `schet_${inv.id}.xlsx`);
+  }
+});
+
+document.getElementById("exportAllExcelBtn")?.addEventListener("click", async (e) => {
+  if (typeof XLSX === "undefined") {
+    alert("Библиотека Excel не загружена. Проверьте подключение к интернету.");
+    return;
+  }
+  const btn = e.currentTarget;
+  const btnText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Экспорт...';
+  try {
+    const invoices = await fetchAllInvoices();
+    if (!invoices.length) {
+      alert("Нет документов для экспорта");
+      return;
+    }
+    const ws = XLSX.utils.aoa_to_sheet(invoicesToRows(invoices));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Счета");
+    XLSX.writeFile(wb, "scheta.xlsx");
+  } catch (err) {
+    alert("Ошибка экспорта: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = btnText;
+  }
+});
 
 updateAuthUI();
