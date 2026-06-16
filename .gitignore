@@ -3,6 +3,7 @@ env/
 .venv/
 
 models/
+.env
 .paddleocr/
 
 uploads/
