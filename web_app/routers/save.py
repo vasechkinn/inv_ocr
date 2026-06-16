@@ -4,9 +4,10 @@ from fastapi import (
     Depends,
     HTTPException,
     status,
+    Query,
 )
 from sqlalchemy.orm import Session
-from typing import Annotated
+from sqlalchemy import desc, select, func
 from database import get_db
 from schemas import (
     InvoiceUpdate,
@@ -21,15 +22,46 @@ from web_app.crud import (
     get_or_create_buyer,
     create_invoice,
 )
+from security import get_current_user, User
+
+router = APIRouter(prefix="/save", tags=["Save"])
 
 
-router = APIRouter()
+@router.get("/my-invoices")
+async def get_my_invoices(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    page: int = Query(1, ge=1, description="Номер страницы"),
+    limit: int = Query(10, ge=1, le=100, description="Количество записей на странице"),
+):
+    offset = (page - 1) * limit
+    invoices = db.scalars(
+        select(Invoice)
+        .where(Invoice.user_id == current_user.id)
+        .order_by(desc(Invoice.id))
+        .offset(offset)
+        .limit(limit)
+    ).all()
+
+    total = db.scalar(select(func.count()).where(Invoice.user_id == current_user.id))
+
+    return {
+        "success": True,
+        "invoices": [
+            InvoiceResponse.model_validate(inv).model_dump() for inv in invoices
+        ],
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "has_more": offset + len(invoices) < total,
+    }
 
 
-@router.post("/save/invoice")
+@router.post("/invoice")
 async def save_inv(
     data: InvoiceUpdate,
-    db: Annotated[Session, Depends(get_db)],
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     try:
         supplier_data = SupplierCreate(
@@ -61,7 +93,7 @@ async def save_inv(
             buyer_id=buyer.id,
             supplier_id=sup.id,
         )
-        invoice = create_invoice(db, invoice_create, user_id=None)
+        invoice = create_invoice(db, invoice_create, current_user.id)
         db.refresh(invoice)
 
         response = InvoiceResponse.model_validate(invoice)
