@@ -1,5 +1,12 @@
 from datetime import datetime, date as dt
-from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
+from pydantic import (
+    BaseModel,
+    Field,
+    field_validator,
+    model_validator,
+    ConfigDict,
+    EmailStr,
+)
 from typing import Optional, List
 
 MAX_LEN_NAME = 256
@@ -159,21 +166,26 @@ class ErrorResponse(BaseModel):
 
 
 class UserCreate(BaseModel):
-    telegram_username: str = Field(..., min_length=3, max_length=64)
+    email: EmailStr
     password: str = Field(..., min_length=6)
 
 
 class UserLogin(BaseModel):
-    telegram_username: str
+    email: EmailStr
     password: str
 
 
 class UserResponse(BaseModel):
     id: int
-    telegram_username: str
+    email: str
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 
 class InvoiceUpdate(BaseModel):
