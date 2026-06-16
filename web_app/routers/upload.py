@@ -1,6 +1,11 @@
 import os
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import (
+    APIRouter,
+    UploadFile,
+    File,
+    HTTPException,
+    status,
+    )
 from database import get_db
 from ocr_services.utils import (
     del_temp_files,
