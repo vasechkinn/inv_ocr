@@ -22,10 +22,10 @@ class Buyer(Base):
 class User(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(primary_key=True)
-    telegram_username: Mapped[str] = mapped_column(
-        String(64), unique=True, nullable=False
+    email: Mapped[str] = mapped_column(
+        String(120), unique=True, index=True, nullable=False
     )
-    hashed_password: Mapped[str] = mapped_column(String(128), nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String(256), nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=func.now())
 
     invoices: Mapped[List["Invoice"]] = relationship(back_populates="user")
