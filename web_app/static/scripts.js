@@ -534,6 +534,15 @@ if (editForm && saveBtn) {
       }
       if (copyModalEl && window.bootstrap) {
         const modalWin = new bootstrap.Modal(copyModalEl);
+
+        copyModalEl.addEventListener(
+          "shown.bs.modal",
+          () => {
+            copyTextarea?.focus();
+          },
+          { once: true }
+        );
+
         modalWin.show();
       } else if (copyModalEl) {
         copyModalEl.style.display = "block";
@@ -585,23 +594,56 @@ if (copyBtn && copyTextarea) {
   });
 }
 
-if (fileInput && previewImg) {
-  fileInput.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith("image/")) {
-      const url = URL.createObjectURL(file);
-      previewImg.src = url;
-      previewImg.style.display = "block";
-      previewImg.onload = () => URL.revokeObjectURL(url);
-    } else if (file && file.type === "application/pdf") {
-      previewImg.src = "/static/img/pdf-icon.png";
-      previewImg.style.display = "block";
-    } else {
-      previewImg.src = "";
-      previewImg.style.display = "none";
+document.getElementById("copyRequisitesBtn")?.addEventListener("click", function () {
+    const getVal = (id) => document.getElementById(id)?.value || "";
+    
+    const formData = {
+        date: getVal("date"),
+        summa: getVal("summa"),
+        nds_percent: getVal("nds_percent"),
+        nds_sum: getVal("nds_sum"),
+        provider_name: getVal("provider_name"),
+        provider_inn: getVal("provider_inn"),
+        provider_account: getVal("provider_account"),
+        buyer_name: getVal("buyer_name"),
+        buyer_inn: getVal("buyer_inn"),
+        buyer_fio: getVal("buyer_fio"),
+    };
+
+    const text = `Дата: ${formData.date || "—"}
+Сумма: ${formData.summa || "—"} руб.
+НДС (%): ${formData.nds_percent || "—"}
+Сумма НДС: ${formData.nds_sum || "—"} руб.
+
+Поставщик:
+  - Название: ${formData.provider_name || "—"}
+  - ИНН: ${formData.provider_inn || "—"}
+  - Расчётный счёт: ${formData.provider_account || "—"}
+
+Покупатель:
+  - Название: ${formData.buyer_name || "—"}
+  - ИНН: ${formData.buyer_inn || "—"}
+  - ФИО: ${formData.buyer_fio || "—"}`.trim();
+
+    const copyTextarea = document.getElementById("copyText");
+    if (copyTextarea) {
+        copyTextarea.value = text;
     }
-  });
-}
+
+    const modalEl = document.getElementById("copyModal");
+    if (modalEl && window.bootstrap) {
+        const modal = new bootstrap.Modal(modalEl);
+        
+        modalEl.addEventListener("shown.bs.modal", function onShown() {
+            modalEl.removeEventListener("shown.bs.modal", onShown);
+            copyTextarea?.focus();
+        });
+        
+        modal.show();
+    } else if (modalEl) {
+        modalEl.style.display = "block";
+    }
+});
 
 if (clearBtn) {
   clearBtn.addEventListener("click", () => {
@@ -617,6 +659,7 @@ if (clearBtn) {
     if (buyerFioField) buyerFioField.value = "";
 
     if (fileInput) fileInput.value = "";
+    if (fileNameSpan) fileNameSpan.textContent = "Файл не выбран";
 
     if (previewImg) {
       previewImg.src = "";
@@ -627,5 +670,4 @@ if (clearBtn) {
   });
 }
 
-// ====== INIT ======
 updateAuthUI();
