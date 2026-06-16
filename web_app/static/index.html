@@ -112,6 +112,7 @@
                             </div>
 
                             <button type="submit" id="save_btn" class="btn btn-outline-success" style="display: none;">Сохранить</button>
+                            <button type="button" id="copyRequisitesBtn" class="btn btn-outline-primary">Копировать реквизиты</button>
                             <button type="button" id="clearBtn" class="btn btn-outline-secondary">Очистить</button>
                         </form>
                     </div>
@@ -119,11 +120,11 @@
             </div>
         </div>
 
-        <div class="modal" tabindex="-1" id="copyModal">
+        <div class="modal fade" tabindex="-1" id="copyModal" role="dialog" aria-modal="true" aria-labelledby="copyModalLabel">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Текст добавлен</h5>
+                        <h5 class="modal-title" id="copyModalLabel">Текст добавлен</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
