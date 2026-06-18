@@ -51,6 +51,14 @@
                 <div class="preview-container text-center">
                     <h5>Загруженный документ</h5>
                     <div id="queue_progress" class="text-muted mb-2"></div>
+                    <div class="d-flex justify-content-center gap-2 mb-2" id="carousel_controls">
+                        <button type="button" id="prev_btn" class="btn btn-sm btn-outline-secondary" title="Предыдущий документ">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button type="button" id="next_btn" class="btn btn-sm btn-outline-secondary" title="Следующий документ">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
                     <div id="preview-area" class="border rounded p-2 bg-light">
                         <img id="preview_image" src="" class="img-fluid" alt="Предпросмотр" style="display: none;">
                         <div id="preview_placeholder" class="text-muted p-3" style="display: none;"></div>
@@ -113,7 +121,8 @@
                                 </div>
                             </div>
 
-                            <button type="submit" id="save_btn" class="btn btn-outline-success" style="display: none;">Сохранить</button>
+                            <button type="submit" id="save_btn" class="btn btn-outline-success">Сохранить</button>
+                            <button type="button" id="skip_btn" class="btn btn-outline-warning">Пропустить и далее</button>
                             <button type="button" id="copyRequisitesBtn" class="btn btn-outline-primary">Копировать реквизиты</button>
                             <button type="button" id="exportExcelBtn" class="btn btn-outline-success">Экспорт в Excel</button>
                             <button type="button" id="clearBtn" class="btn btn-outline-secondary">Очистить</button>
