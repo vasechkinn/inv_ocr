@@ -267,6 +267,81 @@ if (btnLogout) {
   });
 }
 
+const prevBtn = document.getElementById("prev_btn");
+const nextBtn = document.getElementById("next_btn");
+const skipBtn = document.getElementById("skip_btn");
+const carouselControls = document.getElementById("carousel_controls");
+
+function updateCarouselButtons() {
+  if (!carouselControls || uploadQueue.length <= 1) {
+    if (carouselControls) carouselControls.classList.remove("active");
+    if (prevBtn) prevBtn.classList.add("carousel-btn-hidden");
+    if (nextBtn) nextBtn.classList.add("carousel-btn-hidden");
+    if (skipBtn) skipBtn.classList.add("carousel-btn-hidden");
+    return;
+  }
+
+  if (carouselControls) carouselControls.classList.add("active");
+
+  if (prevBtn) {
+    if (queueIndex > 0) {
+      prevBtn.classList.remove("carousel-btn-hidden");
+    } else {
+      prevBtn.classList.add("carousel-btn-hidden");
+    }
+  }
+
+  if (nextBtn) {
+    if (queueIndex < uploadQueue.length - 1) {
+      nextBtn.classList.remove("carousel-btn-hidden");
+    } else {
+      nextBtn.classList.add("carousel-btn-hidden");
+    }
+  }
+
+  if (skipBtn) {
+    if (queueIndex < uploadQueue.length - 1) {
+      skipBtn.classList.remove("carousel-btn-hidden");
+    } else {
+      skipBtn.classList.add("carousel-btn-hidden");
+    }
+    skipBtn.disabled = false;
+    skipBtn.classList.remove("btn-secondary");
+    skipBtn.classList.add("btn-outline-warning");
+    skipBtn.title = "";
+  }
+}
+
+if (prevBtn) {
+  prevBtn.addEventListener("click", async () => {
+    if (queueIndex > 0) {
+      queueIndex--;
+      await processQueueItem();
+    }
+  });
+}
+
+if (nextBtn) {
+  nextBtn.addEventListener("click", async () => {
+    if (queueIndex < uploadQueue.length - 1) {
+      queueIndex++;
+      await processQueueItem();
+    }
+  });
+}
+
+if (skipBtn) {
+  skipBtn.addEventListener("click", async () => {
+    if (queueIndex < uploadQueue.length - 1) {
+
+      fillForm({}, {});
+      if (fileInput) fileInput.value = "";
+      queueIndex++;
+      await processQueueItem();
+    }
+  });
+}
+
 async function loadMyDocs(page = 1) {
   const token = getAuthToken();
   if (!token) {
@@ -469,6 +544,7 @@ async function processQueueItem() {
 
   showPreview(file);
   updateQueueProgress();
+  updateCarouselButtons();
   fillForm({}, {});
 
   const formData = new FormData();
@@ -601,10 +677,11 @@ if (editForm && saveBtn) {
         copyTextarea.value = userText;
       }
 
-      if (queueIndex < uploadQueue.length - 1) {
-        queueIndex++;
-        await processQueueItem();
-      } else {
+      // Обновляем кнопки карусели
+      updateCarouselButtons();
+
+      // Если это последний документ — показываем модальное окно
+      if (queueIndex >= uploadQueue.length - 1) {
         if (copyModalEl && window.bootstrap) {
           const modalWin = new bootstrap.Modal(copyModalEl);
 
