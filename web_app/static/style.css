@@ -142,3 +142,15 @@ html {
     object-fit: contain;
   }
 }
+
+#carousel_controls {
+  display: none;
+}
+
+#carousel_controls.active {
+  display: flex;
+}
+
+.carousel-btn-hidden {
+  display: none !important;
+}
