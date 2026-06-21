@@ -1000,6 +1000,46 @@ document.getElementById("exportExcelBtn")?.addEventListener("click", () => {
   exportReqsToExcel(collectFormReqs(), "rekvizity.xlsx");
 });
 
+document.getElementById("exportJsonBtn")?.addEventListener("click", () => {
+  const data = collectFormReqs();
+  
+  // Формат для 1С - массив объектов с парами ключ-значение
+  const json1C = [{
+    "Дата": data.date || "",
+    "Сумма": data.summa || "",
+    "НДС_процент": data.nds_percent || "",
+    "НДС_сумма": data.nds_sum || "",
+    "Поставщик_название": data.provider_name || "",
+    "Поставщик_ИНН": data.provider_inn || "",
+    "Поставщик_расчётный_счёт": data.provider_account || "",
+    "Покупатель_название": data.buyer_name || "",
+    "Покупатель_ИНН": data.buyer_inn || "",
+    "Покупатель_ФИО": data.buyer_fio || ""
+  }];
+  
+  const jsonString = JSON.stringify(json1C, null, 2);
+  
+  // Скачивание файла
+  const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "schet_1c.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  // Показ в модальном окне
+  if (copyTextarea) {
+    copyTextarea.value = jsonString;
+  }
+  if (copyModalEl && window.bootstrap) {
+    const modal = new bootstrap.Modal(copyModalEl);
+    modal.show();
+  }
+});
+
 document.addEventListener("click", (e) => {
   const copyEl = e.target.closest("[data-copy-inv]");
   if (copyEl) {
