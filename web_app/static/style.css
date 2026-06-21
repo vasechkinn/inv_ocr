@@ -21,6 +21,72 @@ html {
   margin-bottom: 10px;
 }
 
+.steps-timeline {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px 0 10px 0;
+}
+
+.steps-timeline h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    position: relative;
+    padding-left: 0;
+}
+
+.step-item:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 20px;
+    top: 50px;
+    bottom: 10px;
+    width: 2px;
+    background-color: #6c757d;
+    z-index: 0;
+}
+
+.step-number {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f5b2ac;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.step-text {
+    flex: 1;
+    text-align: left;
+    padding-top: 8px;
+}
+
+.step-text h5 {
+    margin: 0 0 4px 0;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.step-text p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
 .full-width-bg {
   padding: 50px 100px 0px 100px;
   width: 100%;
@@ -94,7 +160,6 @@ html {
 }
 
 @media (max-width: 576px) {
-
   .full-width-bg {
     padding: 5px;
   }
