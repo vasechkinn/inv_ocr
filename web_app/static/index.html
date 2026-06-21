@@ -16,7 +16,8 @@
             <a class="navbar-brand" href="#">OCR Счёт</a>
             <div class="d-flex align-items-center">
                 <span id="user_info" class="text-white me-3" style="display: none;"></span>
-                <button id="btn_my_docs" class="btn btn-outline-light me-2" style="display: none;" data-bs-toggle="modal" data-bs-target="#myDocsModal">
+                <button id="btn_my_docs" class="btn btn-outline-light me-2" style="display: none;"
+                    data-bs-toggle="modal" data-bs-target="#myDocsModal">
                     <i class="fas fa-file-alt me-1"></i> Мои документы
                 </button>
                 <button id="btn_login" class="btn btn-outline-light me-2">Войти</button>
@@ -46,22 +47,55 @@
             </div>
         </div>
 
+        <div class="steps-timeline">
+            <h2>Этапы работы</h2>
+
+            <div class="step-item">
+                <div class="step-number">1</div>
+                <div class="step-text">
+                    <h5>Загрузка счёта</h5>
+                    <p>Выберите файл изображения или PDF</p>
+                </div>
+            </div>
+
+            <div class="step-item">
+                <div class="step-number">2</div>
+                <div class="step-text">
+                    <h5>Распознавание</h5>
+                    <p>Система извлекает дату, сумму, ИНН и другие реквизиты</p>
+                </div>
+            </div>
+
+            <div class="step-item">
+                <div class="step-number">3</div>
+                <div class="step-text">
+                    <h5>Редактирование и сохранение</h5>
+                    <p>Проверьте данные, скопируйте или сохраните в базу</p>
+                </div>
+            </div>
+        </div>
+
+
+
         <div class="row mt-4" id="postUploadBlock" style="display: none;">
             <div class="col-12">
                 <div class="preview-container text-center">
                     <h5>Загруженный документ</h5>
                     <div id="queue_progress" class="text-muted mb-2"></div>
                     <div class="d-flex justify-content-center gap-2 mb-2" id="carousel_controls">
-                        <button type="button" id="prev_btn" class="btn btn-sm btn-outline-secondary" title="Предыдущий документ">
+                        <button type="button" id="prev_btn" class="btn btn-sm btn-outline-secondary"
+                            title="Предыдущий документ">
                             <i class="fas fa-chevron-left"></i>
                         </button>
-                        <button type="button" id="next_btn" class="btn btn-sm btn-outline-secondary" title="Следующий документ">
+                        <button type="button" id="next_btn" class="btn btn-sm btn-outline-secondary"
+                            title="Следующий документ">
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
                     <div id="preview-area" class="border rounded p-2 bg-light">
                         <img id="preview_image" src="" class="img-fluid" alt="Предпросмотр" style="display: none;">
-                        <iframe id="pdf_preview" src="" width="100%" height="400px" style="display: none; border: none;"></iframe>
+                        <iframe id="pdf_preview" src="" width="100%" height="400px"
+                            style="display: none; border: none;"></iframe>
                         <div id="preview_placeholder" class="text-muted p-3" style="display: none;"></div>
                     </div>
                 </div>
@@ -123,9 +157,14 @@
                             </div>
 
                             <button type="submit" id="save_btn" class="btn btn-outline-success">Сохранить</button>
-                            <button type="button" id="skip_btn" class="btn btn-outline-warning">Пропустить и далее</button>
-                            <button type="button" id="copyRequisitesBtn" class="btn btn-outline-primary">Копировать реквизиты</button>
-                            <button type="button" id="exportExcelBtn" class="btn btn-outline-success">Экспорт в Excel</button>
+                            <button type="button" id="skip_btn" class="btn btn-outline-warning">Пропустить и
+                                далее</button>
+                            <button type="button" id="copyRequisitesBtn" class="btn btn-outline-primary">Копировать
+                                реквизиты</button>
+                            <button type="button" id="exportExcelBtn" class="btn btn-outline-success">Экспорт в
+                                Excel</button>
+                            <button type="button" id="exportJsonBtn" class="btn btn-outline-info">Экспорт в JSON
+                                (1С)</button>
                             <button type="button" id="clearBtn" class="btn btn-outline-secondary">Очистить</button>
                         </form>
                     </div>
@@ -133,7 +172,8 @@
             </div>
         </div>
 
-        <div class="modal fade" tabindex="-1" id="copyModal" role="dialog" aria-modal="true" aria-labelledby="copyModalLabel">
+        <div class="modal fade" tabindex="-1" id="copyModal" role="dialog" aria-modal="true"
+            aria-labelledby="copyModalLabel">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -182,7 +222,8 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Пароль</label>
-                                <input type="password" class="form-control" id="register_password" required minlength="6">
+                                <input type="password" class="form-control" id="register_password" required
+                                    minlength="6">
                             </div>
                             <button type="submit" class="btn btn-success w-100">Зарегистрироваться</button>
                         </form>
