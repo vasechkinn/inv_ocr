@@ -18,6 +18,7 @@ html {
   flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
+  margin-bottom: 10px;
 }
 
 .full-width-bg {
