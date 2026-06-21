@@ -467,6 +467,7 @@ const copyTextarea = document.getElementById("copyText");
 const copyBtn = document.getElementById("copyBtn");
 const clearBtn = document.getElementById("clearBtn");
 const previewImg = document.getElementById("preview_image");
+const pdfPreview = document.getElementById("pdf_preview");
 const noImagePlaceholder = document.getElementById("no-image-placeholder");
 const fileNameSpan = document.getElementById("file_name");
 const queueProgress = document.getElementById("queue_progress");
@@ -478,8 +479,10 @@ if (fileInput && fileNameSpan) {
       fileNameSpan.textContent = `Выбрано файлов: ${this.files.length}`;
     } else if (this.files && this.files.length === 1) {
       fileNameSpan.textContent = this.files[0].name;
+      showPreview(this.files[0]); // Показываем превью сразу при выборе
     } else {
       fileNameSpan.textContent = "Файл не выбран";
+      showPreview(null); // Скрываем превью
     }
   });
 }
@@ -510,20 +513,28 @@ function showPreview(file) {
     URL.revokeObjectURL(currentPreviewUrl);
     currentPreviewUrl = null;
   }
-  if (file && file.type && file.type.startsWith("image/")) {
+
+  if (!file) return;
+
+  if (previewImg) previewImg.style.display = "none";
+  if (pdfPreview) pdfPreview.style.display = "none";
+  if (previewPlaceholder) previewPlaceholder.style.display = "none";
+
+  if (file.type.startsWith("image/")) {
     currentPreviewUrl = URL.createObjectURL(file);
     if (previewImg) {
       previewImg.src = currentPreviewUrl;
       previewImg.style.display = "block";
     }
-    if (previewPlaceholder) previewPlaceholder.style.display = "none";
-  } else {
-    if (previewImg) {
-      previewImg.src = "";
-      previewImg.style.display = "none";
+  } else if (file.type === "application/pdf") {
+    currentPreviewUrl = URL.createObjectURL(file);
+    if (pdfPreview) {
+      pdfPreview.src = currentPreviewUrl;
+      pdfPreview.style.display = "block";
     }
+  } else {
     if (previewPlaceholder) {
-      previewPlaceholder.textContent = file ? file.name : "";
+      previewPlaceholder.textContent = file.name;
       previewPlaceholder.style.display = "block";
     }
   }
@@ -677,10 +688,8 @@ if (editForm && saveBtn) {
         copyTextarea.value = userText;
       }
 
-      // Обновляем кнопки карусели
       updateCarouselButtons();
 
-      // Если это последний документ — показываем модальное окно
       if (queueIndex >= uploadQueue.length - 1) {
         if (copyModalEl && window.bootstrap) {
           const modalWin = new bootstrap.Modal(copyModalEl);
@@ -822,6 +831,10 @@ if (clearBtn) {
     if (previewImg) {
       previewImg.src = "";
       previewImg.style.display = "none";
+    }
+    if (pdfPreview) {
+      pdfPreview.src = "";
+      pdfPreview.style.display = "none";
     }
     if (previewPlaceholder) {
       previewPlaceholder.textContent = "";
