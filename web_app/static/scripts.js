@@ -7,6 +7,14 @@ let queueIndex = 0;
 let currentPreviewUrl = null;
 let loadedInvoices = [];
 
+// Защита от XSS: экранирование HTML-символов
+function escapeHtml(str) {
+  if (str == null || str === "") return "";
+  const div = document.createElement("div");
+  div.appendChild(document.createTextNode(String(str)));
+  return div.innerHTML;
+}
+
 function getAuthToken() {
   return localStorage.getItem("auth_token");
 }
@@ -384,7 +392,7 @@ async function loadMyDocs(page = 1) {
     renderPagination(data);
   } catch (err) {
     if (listEl)
-      listEl.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+      listEl.innerHTML = `<div class="alert alert-danger">${escapeHtml(err.message)}</div>`;
   }
 }
 
@@ -406,27 +414,27 @@ function renderInvoicesList(data) {
     <div class="list-group-item">
       <div class="d-flex justify-content-between align-items-center">
         <div>
-          <strong>Дата:</strong> ${inv.date || "—"} &nbsp;
-          <strong>Сумма:</strong> ${inv.summ ? inv.summ + " ₽" : "—"} &nbsp;
-          <strong>НДС:</strong> ${inv.nds_percent || "—"}%
+          <strong>Дата:</strong> ${escapeHtml(inv.date) || "—"} &nbsp;
+          <strong>Сумма:</strong> ${inv.summ ? escapeHtml(inv.summ) + " ₽" : "—"} &nbsp;
+          <strong>НДС:</strong> ${escapeHtml(inv.nds_percent) || "—"}%
         </div>
         <div class="d-flex align-items-center gap-2">
-          <small class="text-muted">#${inv.id}</small>
+          <small class="text-muted">#${escapeHtml(inv.id)}</small>
           <div class="dropdown">
             <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
               Копировать
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="#" data-copy-inv="${inv.id}">Копировать текст</a></li>
-              <li><a class="dropdown-item" href="#" data-excel-inv="${inv.id}">Скачать Excel</a></li>
+              <li><a class="dropdown-item" href="#" data-copy-inv="${escapeHtml(inv.id)}">Копировать текст</a></li>
+              <li><a class="dropdown-item" href="#" data-excel-inv="${escapeHtml(inv.id)}">Скачать Excel</a></li>
             </ul>
           </div>
         </div>
       </div>
       <div class="mt-1">
         <small>
-          ${inv.supplier?.name_sup ? `<strong>Поставщик:</strong> ${inv.supplier.name_sup} (ИНН: ${inv.supplier.inn_sup || "—"})` : ""}
-          ${inv.buyer?.buyer_company ? ` | <strong>Покупатель:</strong> ${inv.buyer.buyer_company}` : ""}
+          ${inv.supplier?.name_sup ? `<strong>Поставщик:</strong> ${escapeHtml(inv.supplier.name_sup)} (ИНН: ${escapeHtml(inv.supplier.inn_sup) || "—"})` : ""}
+          ${inv.buyer?.buyer_company ? ` | <strong>Покупатель:</strong> ${escapeHtml(inv.buyer.buyer_company)}` : ""}
         </small>
       </div>
     </div>
