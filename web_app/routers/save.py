@@ -104,5 +104,12 @@ async def save_inv(
             "copy_text": response.model_dump_json(ensure_ascii=False, indent=2),
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        import logging
+        logging.exception("Ошибка сохранения счёта")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Внутренняя ошибка сервера",
+        )
