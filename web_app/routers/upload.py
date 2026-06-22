@@ -19,6 +19,8 @@ from ocr_services import warm_ocr
 router = APIRouter(prefix="/upload", tags=["OCR"])
 ocr = InvoiceDataExtractor()
 
+MAX_PAGES = 3
+
 if warm_ocr.ocr_model is None:
     warm_ocr.init_ocr()
 
@@ -41,6 +43,13 @@ async def upload_file(
             raise HTTPException(status_code=400, detail=str(e))
 
         res = warm_ocr.ocr_model.predict(path)
+
+        if res and len(res) > MAX_PAGES:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"Документ содержит {len(res)} страниц, максимум: {MAX_PAGES}",
+            )
+
         if res and len(res) > 0:
             data = res[0]
             text = data.get("res", {}).get("rec_texts", []) or data.get("rec_texts", [])
