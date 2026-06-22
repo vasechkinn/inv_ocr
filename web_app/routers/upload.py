@@ -5,8 +5,8 @@ from fastapi import (
     File,
     HTTPException,
     status,
-    )
-from database import get_db
+)
+from db import get_db
 from ocr_services.utils import (
     del_temp_files,
 )

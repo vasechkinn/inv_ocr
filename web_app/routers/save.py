@@ -8,7 +8,7 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, select, func
-from database import get_db
+from db import get_db, Invoice, get_or_create_sup, get_or_create_buyer, create_invoice
 from schemas import (
     InvoiceUpdate,
     InvoiceResponse,
@@ -16,12 +16,7 @@ from schemas import (
     BuyerCreate,
     InvoiceCreate,
 )
-from models import Invoice
-from web_app.crud import (
-    get_or_create_sup,
-    get_or_create_buyer,
-    create_invoice,
-)
+from db import Invoice
 from security import get_current_user, User
 
 router = APIRouter(prefix="/save", tags=["Save"])
@@ -108,6 +103,7 @@ async def save_inv(
         raise
     except Exception as e:
         import logging
+
         logging.exception("Ошибка сохранения счёта")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
