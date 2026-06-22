@@ -10,8 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from database import SessionLocal, get_db
-from models import User
+from db import SessionLocal, get_db, User
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
