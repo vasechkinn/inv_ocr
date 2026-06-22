@@ -93,12 +93,14 @@ function showLoginForm() {
   const registerForm = document.getElementById("register_form");
   const title = document.getElementById("authModalTitle");
   const toggleText = document.getElementById("auth_toggle_text");
-  
+
   clearAuthMessage();
   if (loginForm) loginForm.style.display = "block";
   if (registerForm) registerForm.style.display = "none";
   if (title) title.textContent = "Вход";
-  if (toggleText) toggleText.innerHTML = 'Нет аккаунта? <a href="#" id="show_register">Зарегистрироваться</a>';
+  if (toggleText)
+    toggleText.innerHTML =
+      'Нет аккаунта? <a href="#" id="show_register">Зарегистрироваться</a>';
 }
 
 function showRegisterForm() {
@@ -107,12 +109,14 @@ function showRegisterForm() {
   const registerForm = document.getElementById("register_form");
   const title = document.getElementById("authModalTitle");
   const toggleText = document.getElementById("auth_toggle_text");
-  
+
   clearAuthMessage();
   if (loginForm) loginForm.style.display = "none";
   if (registerForm) registerForm.style.display = "block";
   if (title) title.textContent = "Регистрация";
-  if (toggleText) toggleText.innerHTML = 'Уже есть аккаунт? <a href="#" id="show_login">Войти</a>';
+  if (toggleText)
+    toggleText.innerHTML =
+      'Уже есть аккаунт? <a href="#" id="show_login">Войти</a>';
 }
 
 function openAuthModal() {
@@ -148,7 +152,7 @@ if (loginForm) {
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearAuthMessage();
-    
+
     const email = document.getElementById("login_email").value;
     const password = document.getElementById("login_password").value;
 
@@ -160,7 +164,8 @@ if (loginForm) {
     const submitBtn = loginForm.querySelector('button[type="submit"]');
     const btnText = submitBtn.innerHTML;
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Вход...';
+    submitBtn.innerHTML =
+      '<span class="spinner-border spinner-border-sm me-1"></span> Вход...';
 
     try {
       const res = await fetch(`${API_AUTH}/token`, {
@@ -199,7 +204,7 @@ if (registerForm) {
   registerForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearAuthMessage();
-    
+
     const email = document.getElementById("register_email").value;
     const password = document.getElementById("register_password").value;
 
@@ -215,7 +220,8 @@ if (registerForm) {
     const submitBtn = registerForm.querySelector('button[type="submit"]');
     const btnText = submitBtn.innerHTML;
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Регистрация...';
+    submitBtn.innerHTML =
+      '<span class="spinner-border spinner-border-sm me-1"></span> Регистрация...';
 
     try {
       const res = await fetch(`${API_AUTH}/register`, {
@@ -245,8 +251,11 @@ if (registerForm) {
         const modal = bootstrap.Modal.getInstance(modalEl);
         if (modal) modal.hide();
         registerForm.reset();
-        
-        showAuthMessage("Регистрация успешна! Вы автоматически вошли.", "success");
+
+        showAuthMessage(
+          "Регистрация успешна! Вы автоматически вошли.",
+          "success",
+        );
       }
     } catch (err) {
       showAuthMessage(err.message, "danger");
@@ -333,7 +342,6 @@ if (nextBtn) {
 if (skipBtn) {
   skipBtn.addEventListener("click", async () => {
     if (queueIndex < uploadQueue.length - 1) {
-
       fillForm({}, {});
       if (fileInput) fileInput.value = "";
       queueIndex++;
@@ -353,7 +361,9 @@ async function loadMyDocs(page = 1) {
   const listEl = document.getElementById("invoices_list");
   const paginationEl = document.getElementById("invoices_pagination");
 
-  if (listEl) listEl.innerHTML = '<div class="text-center"><div class="spinner-border"></div></div>';
+  if (listEl)
+    listEl.innerHTML =
+      '<div class="text-center"><div class="spinner-border"></div></div>';
 
   try {
     const res = await fetch(`/save/my-invoices?page=${page}&limit=10`, {
@@ -373,7 +383,8 @@ async function loadMyDocs(page = 1) {
     renderInvoicesList(data);
     renderPagination(data);
   } catch (err) {
-    if (listEl) listEl.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+    if (listEl)
+      listEl.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
   }
 }
 
@@ -384,7 +395,8 @@ function renderInvoicesList(data) {
   loadedInvoices = data.invoices || [];
 
   if (!data.invoices || data.invoices.length === 0) {
-    listEl.innerHTML = '<div class="alert alert-info">У вас пока нет сохранённых документов</div>';
+    listEl.innerHTML =
+      '<div class="alert alert-info">У вас пока нет сохранённых документов</div>';
     return;
   }
 
@@ -418,7 +430,7 @@ function renderInvoicesList(data) {
         </small>
       </div>
     </div>
-  `
+  `,
     )
     .join("");
 }
@@ -479,10 +491,10 @@ if (fileInput && fileNameSpan) {
       fileNameSpan.textContent = `Выбрано файлов: ${this.files.length}`;
     } else if (this.files && this.files.length === 1) {
       fileNameSpan.textContent = this.files[0].name;
-      showPreview(this.files[0]); // Показываем превью сразу при выборе
+      showPreview(this.files[0]);
     } else {
       fileNameSpan.textContent = "Файл не выбран";
-      showPreview(null); // Скрываем превью
+      showPreview(null);
     }
   });
 }
@@ -502,7 +514,8 @@ function fillForm(pd, fullText) {
   if (ndsSumField) ndsSumField.value = pd.nds_sum ?? "";
   if (providerNameField) providerNameField.value = pd.provider_name || "";
   if (providerInnField) providerInnField.value = pd.provider_inn || "";
-  if (providerAccountField) providerAccountField.value = pd.provider_account || "";
+  if (providerAccountField)
+    providerAccountField.value = pd.provider_account || "";
   if (buyerNameField) buyerNameField.value = pd.buyer_name || "";
   if (buyerInnField) buyerInnField.value = pd.buyer_inn || "";
   if (buyerFioField) buyerFioField.value = fullText?.buyer_fio || "";
@@ -617,7 +630,9 @@ if (editForm && saveBtn) {
 
     const token = getAuthToken();
     if (!token) {
-      alert("Для сохранения необходимо войти в аккаунт. Нажмите 'Войти' в верхнем меню.");
+      alert(
+        "Для сохранения необходимо войти в аккаунт. Нажмите 'Войти' в верхнем меню.",
+      );
       return;
     }
 
@@ -699,7 +714,7 @@ if (editForm && saveBtn) {
             () => {
               copyTextarea?.focus();
             },
-            { once: true }
+            { once: true },
           );
 
           modalWin.show();
@@ -726,16 +741,16 @@ if (summaField) {
       alert("Отрицательная сумма не допускается");
     }
   });
-  
-  summaField.addEventListener('input', function() {
-        let val = this.value.replace(',', '.');
-        let num = parseFloat(val);
-        if (isNaN(num) || num < 0) {
-            this.setCustomValidity('Сумма не может быть отрицательной');
-        } else {
-            this.setCustomValidity('');
-        }
-    });
+
+  summaField.addEventListener("input", function () {
+    let val = this.value.replace(",", ".");
+    let num = parseFloat(val);
+    if (isNaN(num) || num < 0) {
+      this.setCustomValidity("Сумма не может быть отрицательной");
+    } else {
+      this.setCustomValidity("");
+    }
+  });
 
   summaField.addEventListener("paste", function (e) {
     let pasted = (e.clipboardData || window.clipboardData).getData("text");
@@ -757,20 +772,22 @@ if (copyBtn && copyTextarea) {
   });
 }
 
-document.getElementById("copyRequisitesBtn")?.addEventListener("click", function () {
+document
+  .getElementById("copyRequisitesBtn")
+  ?.addEventListener("click", function () {
     const getVal = (id) => document.getElementById(id)?.value || "";
-    
+
     const formData = {
-        date: getVal("date"),
-        summa: getVal("summa"),
-        nds_percent: getVal("nds_percent"),
-        nds_sum: getVal("nds_sum"),
-        provider_name: getVal("provider_name"),
-        provider_inn: getVal("provider_inn"),
-        provider_account: getVal("provider_account"),
-        buyer_name: getVal("buyer_name"),
-        buyer_inn: getVal("buyer_inn"),
-        buyer_fio: getVal("buyer_fio"),
+      date: getVal("date"),
+      summa: getVal("summa"),
+      nds_percent: getVal("nds_percent"),
+      nds_sum: getVal("nds_sum"),
+      provider_name: getVal("provider_name"),
+      provider_inn: getVal("provider_inn"),
+      provider_account: getVal("provider_account"),
+      buyer_name: getVal("buyer_name"),
+      buyer_inn: getVal("buyer_inn"),
+      buyer_fio: getVal("buyer_fio"),
     };
 
     const text = `Дата: ${formData.date || "—"}
@@ -790,23 +807,23 @@ document.getElementById("copyRequisitesBtn")?.addEventListener("click", function
 
     const copyTextarea = document.getElementById("copyText");
     if (copyTextarea) {
-        copyTextarea.value = text;
+      copyTextarea.value = text;
     }
 
     const modalEl = document.getElementById("copyModal");
     if (modalEl && window.bootstrap) {
-        const modal = new bootstrap.Modal(modalEl);
-        
-        modalEl.addEventListener("shown.bs.modal", function onShown() {
-            modalEl.removeEventListener("shown.bs.modal", onShown);
-            copyTextarea?.focus();
-        });
-        
-        modal.show();
+      const modal = new bootstrap.Modal(modalEl);
+
+      modalEl.addEventListener("shown.bs.modal", function onShown() {
+        modalEl.removeEventListener("shown.bs.modal", onShown);
+        copyTextarea?.focus();
+      });
+
+      modal.show();
     } else if (modalEl) {
-        modalEl.style.display = "block";
+      modalEl.style.display = "block";
     }
-});
+  });
 
 if (clearBtn) {
   clearBtn.addEventListener("click", () => {
@@ -1002,25 +1019,28 @@ document.getElementById("exportExcelBtn")?.addEventListener("click", () => {
 
 document.getElementById("exportJsonBtn")?.addEventListener("click", () => {
   const data = collectFormReqs();
-  
-  // Формат для 1С - массив объектов с парами ключ-значение
-  const json1C = [{
-    "Дата": data.date || "",
-    "Сумма": data.summa || "",
-    "НДС_процент": data.nds_percent || "",
-    "НДС_сумма": data.nds_sum || "",
-    "Поставщик_название": data.provider_name || "",
-    "Поставщик_ИНН": data.provider_inn || "",
-    "Поставщик_расчётный_счёт": data.provider_account || "",
-    "Покупатель_название": data.buyer_name || "",
-    "Покупатель_ИНН": data.buyer_inn || "",
-    "Покупатель_ФИО": data.buyer_fio || ""
-  }];
-  
+
+  const json1C = [
+    {
+      Дата: data.date || "",
+      Сумма: data.summa || "",
+      НДС_процент: data.nds_percent || "",
+      НДС_сумма: data.nds_sum || "",
+      Поставщик_название: data.provider_name || "",
+      Поставщик_ИНН: data.provider_inn || "",
+      Поставщик_расчётный_счёт: data.provider_account || "",
+      Покупатель_название: data.buyer_name || "",
+      Покупатель_ИНН: data.buyer_inn || "",
+      Покупатель_ФИО: data.buyer_fio || "",
+    },
+  ];
+
   const jsonString = JSON.stringify(json1C, null, 2);
-  
+
   // Скачивание файла
-  const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
+  const blob = new Blob([jsonString], {
+    type: "application/json;charset=utf-8",
+  });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -1029,8 +1049,7 @@ document.getElementById("exportJsonBtn")?.addEventListener("click", () => {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  
-  // Показ в модальном окне
+
   if (copyTextarea) {
     copyTextarea.value = jsonString;
   }
@@ -1057,31 +1076,36 @@ document.addEventListener("click", (e) => {
   }
 });
 
-document.getElementById("exportAllExcelBtn")?.addEventListener("click", async (e) => {
-  if (typeof XLSX === "undefined") {
-    alert("Библиотека Excel не загружена. Проверьте подключение к интернету.");
-    return;
-  }
-  const btn = e.currentTarget;
-  const btnText = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Экспорт...';
-  try {
-    const invoices = await fetchAllInvoices();
-    if (!invoices.length) {
-      alert("Нет документов для экспорта");
+document
+  .getElementById("exportAllExcelBtn")
+  ?.addEventListener("click", async (e) => {
+    if (typeof XLSX === "undefined") {
+      alert(
+        "Библиотека Excel не загружена. Проверьте подключение к интернету.",
+      );
       return;
     }
-    const ws = XLSX.utils.aoa_to_sheet(invoicesToRows(invoices));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Счета");
-    XLSX.writeFile(wb, "scheta.xlsx");
-  } catch (err) {
-    alert("Ошибка экспорта: " + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = btnText;
-  }
-});
+    const btn = e.currentTarget;
+    const btnText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML =
+      '<span class="spinner-border spinner-border-sm me-1"></span> Экспорт...';
+    try {
+      const invoices = await fetchAllInvoices();
+      if (!invoices.length) {
+        alert("Нет документов для экспорта");
+        return;
+      }
+      const ws = XLSX.utils.aoa_to_sheet(invoicesToRows(invoices));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Счета");
+      XLSX.writeFile(wb, "scheta.xlsx");
+    } catch (err) {
+      alert("Ошибка экспорта: " + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = btnText;
+    }
+  });
 
 updateAuthUI();
