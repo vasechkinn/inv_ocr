@@ -1,5 +1,3 @@
-const btnMyDocsEl = document.getElementById("btn_my_docs");
-
 async function loadMyDocs(page = 1) {
   const token = getAuthToken();
   if (!token) {
