@@ -37,9 +37,11 @@ class XSSProtectionMiddleware(BaseHTTPMiddleware):
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
-            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+            "style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+            "connect-src 'self' https://cdn.jsdelivr.net; "
             "img-src 'self' data: blob:; "
-            "font-src 'self' https://cdn.jsdelivr.net; "
+            "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
             "frame-src 'self'; "
             "object-src 'none'; "
             "base-uri 'self';"
