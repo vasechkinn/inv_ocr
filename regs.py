@@ -56,11 +56,16 @@ class InvoiceDataExtractor:
         """
         candidates = []
         for marker in markers:
+            reg_start = rf"(?im)^\s*{re.escape(marker)}\s*:?"
+            for m in re.finditer(reg_start, text):
+                candidates.append(m.start())
+
             pattern = (
                 r"(?<![А-Яа-яЁёA-Za-z])" + re.escape(marker) + r"(?![А-Яа-яЁёA-Za-z])"
             )
             for m in re.finditer(pattern, text, re.IGNORECASE):
-                candidates.append(m.start())
+                if m.start() not in candidates:
+                    candidates.append(m.start())
         return min(candidates) if candidates else None
 
     @staticmethod
@@ -78,6 +83,27 @@ class InvoiceDataExtractor:
                 if candidate < end_pos:
                     end_pos = candidate
         return end_pos
+
+    @staticmethod
+    def _get_context_by_lines(
+        text: str, marker_pos: int, lines_before: int = 3, lines_after: int = 5
+    ) -> str:
+        """
+        Возвращает контекст вокруг marker_pos: lines_before строк до и lines_after строк после.
+        """
+        lines = text.split("\n")
+
+        current_pos = 0
+        marker_line_idx = 0
+        for i, line in enumerate(lines):
+            if current_pos <= marker_pos < current_pos + len(line) + 1:
+                marker_line_idx = i
+                break
+            current_pos += len(line) + 1
+
+        start_line = max(0, marker_line_idx - lines_before)
+        end_line = min(len(lines), marker_line_idx + lines_after + 1)
+        return "\n".join(lines[start_line:end_line])
 
     def _extract_role_block(
         self,
@@ -244,13 +270,30 @@ class InvoiceDataExtractor:
         """
         ИНН поставщика 10 или 12 цифр
         """
-        block = self._block_text(text)
-        if not block:
-            block = text
-        clean_block = self._clean_ocr_text(block)
+        provider_pos = self._find_block_start(text, self._PROVIDER_MARKERS)
+        if provider_pos is None:
+            return None
+
+        context = self._get_context_by_lines(
+            text, provider_pos, lines_before=5, lines_after=10
+        )
+        clean_context = self._clean_ocr_text(context)
+
         reg = r"(?i)ИНН\s*:?\s*(?<!\d)(\d{10}|\d{12})(?!\d)"
-        res = re.search(reg, clean_block)
-        return res.group(1) if res else None
+
+        org_forms = r"(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП)"
+        pattern = rf'({org_forms}\s*"?[^",]*"?)\s*,?\s*ИНН\s*:?\s*(\d{{10}}|\d{{12}})'
+        match = re.search(pattern, clean_context, re.IGNORECASE)
+        if match:
+            inn = match.group(2)
+            if "БАНК" not in clean_context[: match.start()].upper():
+                return inn
+
+        res = re.search(reg, clean_context)
+        if res:
+            return res.group(1)
+
+        return None
 
     def get_provider_num_account(self, text: str) -> Optional[str]:
         """
@@ -268,31 +311,73 @@ class InvoiceDataExtractor:
         """
         название компании поставщика
         """
-        block = self._block_text(text)
-        if not block:
-            block = text
-        block = re.sub(
-            r"(?im)^\s*(?:Поставщик|Исполнитель|Продавец)\s*:?\s*", "", block
+        org_forms = r"(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|Общество с ограниченной ответственностью|Закрытое акционерное общество|Открытое акционерное общество)"
+
+        provider_pos = self._find_block_start(text, self._PROVIDER_MARKERS)
+        if provider_pos is None:
+            return None
+
+        context = self._get_context_by_lines(
+            text, provider_pos, lines_before=5, lines_after=10
         )
 
-        org_forms = r"(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|Общество с ограниченной ответственностью|Закрытое акционерное общество|Открытое акционерное общество)"
-        name_match = re.search(
-            rf"({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n)", block, re.IGNORECASE
+        context_clean = re.sub(
+            r"[А-ЯЁ]+\s*(?:БАНК|Банк)\b[^,\n]*",
+            "",
+            context,
         )
-        return name_match.group(1).strip() if name_match else None
+        context_clean = re.sub(
+            r"(?:БИК|к/с|р/с|счет)\s*\d+",
+            "",
+            context_clean,
+        )
+
+        pattern = rf'({org_forms}(?:\s+"[^"]*"|\s+[^,"\n]+?))\s*,\s*ИНН'
+        name_match = re.search(pattern, context_clean, re.IGNORECASE)
+        if name_match:
+            name = name_match.group(1).strip().strip('"').strip()
+            if name and "БАНК" not in name.upper():
+                return name
+
+        name_match = re.search(
+            rf'({org_forms}(?:\s+"[^"]*"|\s+[^,"\n]+?))(?=\s*,|\s*$|\n)',
+            context_clean,
+            re.IGNORECASE,
+        )
+        if name_match:
+            name = name_match.group(1).strip().strip('"').strip()
+            if name and "БАНК" not in name.upper():
+                return name
+
+        return None
 
     def get_buyer_inn(self, text: str) -> Optional[str]:
         """
         ИНН покупателя
         """
-        block = self._block_buyer(text)
-        if not block:
-            block = text
-        clean_block = self._clean_ocr_text(block)
-        inn_match = re.search(
-            r"(?i)ИНН\s*:?\s*(?<!\d)(\d{10}|\d{12})(?!\d)", clean_block
+        buyer_pos = self._find_block_start(text, self._BUYER_MARKERS)
+        if buyer_pos is None:
+            buyer_pos = self._find_block_start(text, self._BUYER_FALLBACK_MARKERS)
+        if buyer_pos is None:
+            return None
+
+        context = self._get_context_by_lines(
+            text, buyer_pos, lines_before=10, lines_after=10
         )
-        return inn_match.group(1) if inn_match else None
+        clean_context = self._clean_ocr_text(context)
+
+        clean_context = re.sub(r"[А-ЯЁ]+\s*(?:БАНК|Банк)\b[^,\n]*", "", clean_context)
+
+        reg = r"(?i)ИНН\s*:?\s*(?<!\d)(\d{10}|\d{12})(?!\d)"
+
+        all_inns = list(re.finditer(reg, clean_context, re.IGNORECASE))
+
+        if len(all_inns) >= 2:
+            return all_inns[-1].group(1)
+        elif len(all_inns) == 1:
+            return all_inns[0].group(1)
+
+        return None
 
     def get_fio_buyer(self, text: str) -> Optional[str]:
         """
@@ -327,20 +412,52 @@ class InvoiceDataExtractor:
         """
         название организации покупателя
         """
-        block = self._block_buyer(text)
-        if not block:
-            block = text
-        block = re.sub(
-            r"(?im)^\s*(?:Покупатель|Заказчик|Клиент|Плательщик|Получатель)\s*:?\s*",
-            "",
-            block,
+        org_forms = r"(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|Общество с ограниченной ответственностью|Закрытое акционерное общество)"
+
+        buyer_pos = self._find_block_start(text, self._BUYER_MARKERS)
+        if buyer_pos is None:
+            buyer_pos = self._find_block_start(text, self._BUYER_FALLBACK_MARKERS)
+        if buyer_pos is None:
+            return None
+
+        context = self._get_context_by_lines(
+            text, buyer_pos, lines_before=10, lines_after=10
         )
 
-        org_forms = r"(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|Общество с ограниченной ответственностью|Закрытое акционерное общество)"
-        name_match = re.search(
-            rf"({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n)", block, re.IGNORECASE
+        context_clean = re.sub(
+            r"[А-ЯЁ]+\s*(?:БАНК|Банк)\b[^,\n]*",
+            "",
+            context,
         )
-        return name_match.group(1).strip() if name_match else None
+        context_clean = re.sub(
+            r"(?:БИК|к/с|р/с|счет)\s*\d+",
+            "",
+            context_clean,
+        )
+
+        pattern = rf'({org_forms}\s+"[^"]+"|{org_forms}\s+[^,"\n]+?)(?=\s*,\s*ИНН)'
+        all_matches = list(re.finditer(pattern, context_clean, re.IGNORECASE))
+
+        if len(all_matches) >= 2:
+            name = all_matches[-1].group(1).strip().strip('"').strip()
+            if name and "БАНК" not in name.upper():
+                return name
+        elif len(all_matches) == 1:
+            name = all_matches[0].group(1).strip().strip('"').strip()
+            if name and "БАНК" not in name.upper():
+                return name
+
+        name_match = re.search(
+            rf'({org_forms}\s+"[^"]+"|{org_forms}\s+[^,"\n]+?)(?=\s*,|\s*$|\n)',
+            context_clean,
+            re.IGNORECASE,
+        )
+        if name_match:
+            name = name_match.group(1).strip().strip('"').strip()
+            if name and "БАНК" not in name.upper():
+                return name
+
+        return None
 
     def extract_all(
         self, text: str
