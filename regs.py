@@ -7,8 +7,23 @@ class InvoiceDataExtractor:
     Извлекает реквизиты из текста счёта, полученного OCR.
     """
 
+    _PROVIDER_MARKERS = ["Поставщик", "Исполнитель", "Продавец"]
+    _BUYER_MARKERS = ["Покупатель", "Заказчик", "Клиент", "Плательщик"]
+    _BUYER_FALLBACK_MARKERS = ["Получатель"]
+
+    _SECTION_END_MARKERS = [
+        "Основание",
+        "Товары",
+        "Наименование",
+        "Итого",
+        "Всего",
+        "Руководитель",
+        "Бухгалтер",
+    ]
+
     @staticmethod
     def _clean_ocr_text(text: str) -> str:
+
         """
         Замена часто встречающихся в OCR ошибочных символов
         """
@@ -34,21 +49,84 @@ class InvoiceDataExtractor:
                 end_pos = pos
         return text[start_pos:end_pos].strip()
 
+    @staticmethod
+    def _find_block_start(text: str, markers: List[str]) -> Optional[int]:
+        """
+        Ищет старт блока по маркеру как отдельному слову в любой позиции.
+        Регистр игнорируется.
+        """
+        candidates = []
+        for marker in markers:
+            # Границы слова для кириллицы и латиницы
+            pattern = r'(?<![А-Яа-яЁёA-Za-z])' + re.escape(marker) + r'(?![А-Яа-яЁёA-Za-z])'
+            for m in re.finditer(pattern, text, re.IGNORECASE):
+                candidates.append(m.start())
+        return min(candidates) if candidates else None
+
+    @staticmethod
+    def _find_block_end(text: str, start_pos: int, end_markers: List[str]) -> int:
+        """
+        Ищет ближайший маркер конца блока после start_pos.
+        Маркер ищется в начале строки (с учётом пробелов), регистр игнорируется.
+        """
+        end_pos = len(text)
+        for marker in end_markers:
+            reg = rf"(?im)^\s*(?:\(|\[)?{re.escape(marker)}(?:\)|\])?\s*:?(?:\s|$)"
+            m = re.search(reg, text[start_pos:])
+            if m:
+                candidate = start_pos + m.start()
+                if candidate < end_pos:
+                    end_pos = candidate
+        return end_pos
+
+    def _extract_role_block(
+        self,
+        text: str,
+        start_markers: List[str],
+        stop_markers: List[str],
+    ) -> Optional[str]:
+        """
+        Извлекает блок реквизитов роли (поставщик/покупатель) по маркерам начала и конца.
+        """
+        start_pos = self._find_block_start(text, start_markers)
+        if start_pos is None:
+            return None
+        end_pos = self._find_block_end(text, start_pos + 1, stop_markers)
+        return text[start_pos:end_pos].strip()
+
     def _block_text(self, text: str) -> Optional[str]:
         """
         Блок поставщика
         """
-        return self._extract_section(
-            text, "Поставщик:", ["Покупатель", "Итого", "Всего", "№"]
-        )
+        stop_markers = self._BUYER_MARKERS + self._SECTION_END_MARKERS
+        return self._extract_role_block(text, self._PROVIDER_MARKERS, stop_markers)
+
+    def _block_provider(self, text: str) -> Optional[str]:
+        """
+        Алиас для обратной совместимости с отладочными скриптами.
+        """
+        return self._block_text(text)
 
     def _block_buyer(self, text: str) -> Optional[str]:
         """
         Блок покупателя
         """
-        return self._extract_section(
-            text, "Покупатель:", ["Итого", "Всего", "№", "Руководитель", "Бухгалтер"]
+        stop_markers = self._SECTION_END_MARKERS
+        block = self._extract_role_block(text, self._BUYER_MARKERS, stop_markers)
+        if block:
+            return block
+
+        # Fallback для документов с маркером "Получатель".
+        # Чтобы не цеплять банковский блок в шапке, ищем "Получатель" только после блока поставщика.
+        provider_pos = self._find_block_start(text, self._PROVIDER_MARKERS)
+        search_start = provider_pos if provider_pos is not None else 0
+        tail = text[search_start:]
+        tail_block = self._extract_role_block(
+            tail, self._BUYER_FALLBACK_MARKERS, stop_markers
         )
+        return tail_block
+
+
 
     def get_num_account(self, text: str, separator: str = r"[ -]") -> List[str]:
         """
@@ -197,7 +275,10 @@ class InvoiceDataExtractor:
         block = self._block_text(text)
         if not block:
             block = text
-        block = re.sub(r"^Поставщик:\s*", "", block, flags=re.IGNORECASE)
+        block = re.sub(
+            r"(?im)^\s*(?:Поставщик|Исполнитель|Продавец)\s*:?\s*", "", block
+        )
+
         org_forms = r"(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|Общество с ограниченной ответственностью|Закрытое акционерное общество|Открытое акционерное общество)"
         name_match = re.search(
             rf"({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n)", block, re.IGNORECASE
@@ -253,7 +334,12 @@ class InvoiceDataExtractor:
         block = self._block_buyer(text)
         if not block:
             block = text
-        block = re.sub(r"^Покупатель:\s*", "", block, flags=re.IGNORECASE)
+        block = re.sub(
+            r"(?im)^\s*(?:Покупатель|Заказчик|Клиент|Плательщик|Получатель)\s*:?\s*",
+            "",
+            block,
+        )
+
         org_forms = r"(?:ООО|ЗАО|ОАО|АО|ПАО|НКО|ТСЖ|ИП|ТОО|ЧУП|ГУП|МУП|Общество с ограниченной ответственностью|Закрытое акционерное общество)"
         name_match = re.search(
             rf"({org_forms}[^,]+?)(?=\s*,\s*ИНН|\s*$|\n)", block, re.IGNORECASE
