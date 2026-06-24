@@ -23,7 +23,6 @@ class InvoiceDataExtractor:
 
     @staticmethod
     def _clean_ocr_text(text: str) -> str:
-
         """
         Замена часто встречающихся в OCR ошибочных символов
         """
@@ -57,8 +56,9 @@ class InvoiceDataExtractor:
         """
         candidates = []
         for marker in markers:
-            # Границы слова для кириллицы и латиницы
-            pattern = r'(?<![А-Яа-яЁёA-Za-z])' + re.escape(marker) + r'(?![А-Яа-яЁёA-Za-z])'
+            pattern = (
+                r"(?<![А-Яа-яЁёA-Za-z])" + re.escape(marker) + r"(?![А-Яа-яЁёA-Za-z])"
+            )
             for m in re.finditer(pattern, text, re.IGNORECASE):
                 candidates.append(m.start())
         return min(candidates) if candidates else None
@@ -116,8 +116,6 @@ class InvoiceDataExtractor:
         if block:
             return block
 
-        # Fallback для документов с маркером "Получатель".
-        # Чтобы не цеплять банковский блок в шапке, ищем "Получатель" только после блока поставщика.
         provider_pos = self._find_block_start(text, self._PROVIDER_MARKERS)
         search_start = provider_pos if provider_pos is not None else 0
         tail = text[search_start:]
@@ -125,8 +123,6 @@ class InvoiceDataExtractor:
             tail, self._BUYER_FALLBACK_MARKERS, stop_markers
         )
         return tail_block
-
-
 
     def get_num_account(self, text: str, separator: str = r"[ -]") -> List[str]:
         """
