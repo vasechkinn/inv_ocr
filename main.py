@@ -42,8 +42,8 @@ class XSSProtectionMiddleware(BaseHTTPMiddleware):
             "connect-src 'self' https://cdn.jsdelivr.net; "
             "img-src 'self' data: blob:; "
             "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
-            "frame-src 'self'; "
-            "object-src 'none'; "
+            "frame-src 'self' blob: data:; "
+            "object-src 'self' blob: data:; "
             "base-uri 'self';"
         )
 
