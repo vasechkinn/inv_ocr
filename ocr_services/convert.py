@@ -2,19 +2,29 @@ import os
 from io import BytesIO
 from pdf2image.exceptions import PDFPageCountError, PDFSyntaxError
 from PIL import Image
-from ocr_services.utils import converted_pdf, save_pil_file, save_byte_files
+from ocr_services.utils import converted_pdf, save_pil_file, save_byte_files, get_pdf_page_count
 
 
 class FileConversionError(Exception):
     pass
 
 
-def convert_img(file: bytes, filename: str):
+def convert_img(file: bytes, filename: str, max_pages: int = 3):
     name = filename.lower()
     path = None
 
     try:
         if name.endswith(".pdf"):
+            try:
+                page_count = get_pdf_page_count(file)
+            except Exception as e:
+                raise FileConversionError(f"ошибка чтения метаданных PDF: {str(e)}")
+
+            if page_count > max_pages:
+                raise FileConversionError(
+                    f"Документ содержит {page_count} страниц, максимум: {max_pages}"
+                )
+
             try:
                 img = converted_pdf(file)
             except (PDFPageCountError, PDFSyntaxError) as e:

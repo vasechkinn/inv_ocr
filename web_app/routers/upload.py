@@ -38,17 +38,11 @@ async def upload_file(
     full_text = ""
     try:
         try:
-            path = convert_img(content, file.filename)
+            path = convert_img(content, file.filename, max_pages=MAX_PAGES)
         except FileConversionError as e:
             raise HTTPException(status_code=400, detail=str(e))
 
         res = warm_ocr.ocr_model.predict(path)
-
-        if res and len(res) > MAX_PAGES:
-            raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"Документ содержит {len(res)} страниц, максимум: {MAX_PAGES}",
-            )
 
         if res and len(res) > 0:
             data = res[0]

@@ -2,6 +2,7 @@ import tempfile
 import os
 from pdf2image import convert_from_bytes
 from PIL import Image
+import pypdfium2 as pdfium
 
 
 def save_byte_files(file: bytes, suffix: str = ".png") -> str:
@@ -39,6 +40,19 @@ def del_temp_files(path: str):
     """
     if path and os.path.exists(path):
         os.unlink(path)
+
+
+def get_pdf_page_count(pdf_file: bytes) -> int:
+    """
+    получение количества страниц PDF без рендеринга изображений.
+        
+    pdf_file: байты PDF файла
+    return: количество страниц
+    """
+    doc = pdfium.PdfDocument(pdf_file)
+    page_count = len(doc)
+    doc.close()
+    return page_count
 
 
 def converted_pdf(pdf_file: bytes, dpi: int = 200):
