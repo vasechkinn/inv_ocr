@@ -7,7 +7,7 @@ from pydantic import (
     ConfigDict,
     EmailStr,
 )
-from typing import Optional, List
+from typing import Optional, List, ClassVar
 
 MAX_LEN_NAME = 256
 MAX_LEN_INN = 12
@@ -207,6 +207,42 @@ class ErrorResponse(BaseModel):
 class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=6)
+
+    FOREIGN_EMAIL_DOMAINS: ClassVar[set[str]] = {
+        "gmail.com",
+        "googlemail.com",
+        "yahoo.com",
+        "yahoo.ru",
+        "outlook.com",
+        "hotmail.com",
+        "live.com",
+        "msn.com",
+        "icloud.com",
+        "me.com",
+        "mac.com",
+        "protonmail.com",
+        "proton.me",
+        "mail.com",
+        "aol.com",
+        "zoho.com",
+        "gmx.com",
+        "gmx.de",
+        "tutanota.com",
+        "tuta.io",
+        "yandex.com",
+    }
+
+    @field_validator("email")
+    @classmethod
+    def validate_email_domain(cls, v: str) -> str:
+        domain = v.lower().split("@")[1]
+        if domain in cls.FOREIGN_EMAIL_DOMAINS:
+            raise ValueError(
+                "Регистрация через иностранные почтовые сервисы запрещена. "
+                "Используйте российские домены: @mail.ru, @bk.ru, @list.ru, @inbox.ru, "
+                "@internet.ru, @yandex.ru, @ya.ru, @rambler.ru"
+            )
+        return v
 
 
 class UserLogin(BaseModel):

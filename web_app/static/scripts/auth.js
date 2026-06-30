@@ -137,6 +137,46 @@ if (loginForm) {
   });
 }
 
+const FOREIGN_EMAIL_DOMAINS = [
+  "gmail.com",
+  "googlemail.com",
+  "yahoo.com",
+  "yahoo.ru",
+  "outlook.com",
+  "hotmail.com",
+  "live.com",
+  "msn.com",
+  "icloud.com",
+  "me.com",
+  "mac.com",
+  "protonmail.com",
+  "proton.me",
+  "mail.com",
+  "aol.com",
+  "zoho.com",
+  "gmx.com",
+  "gmx.de",
+  "tutanota.com",
+  "tuta.io",
+  "yandex.com",
+];
+
+function isForeignEmail(email) {
+  const domain = email.toLowerCase().split("@")[1];
+  return FOREIGN_EMAIL_DOMAINS.includes(domain);
+}
+
+function showForeignEmailWarning() {
+  const modalEl = document.getElementById("foreignEmailModal");
+  if (modalEl) {
+    let modal = bootstrap.Modal.getInstance(modalEl);
+    if (!modal) {
+      modal = new bootstrap.Modal(modalEl);
+    }
+    modal.show();
+  }
+}
+
 const registerForm = document.getElementById("register_form");
 if (registerForm) {
   registerForm.addEventListener("submit", async (e) => {
@@ -152,6 +192,10 @@ if (registerForm) {
     }
     if (password.length < 6) {
       showAuthMessage("Пароль должен быть не менее 6 символов", "danger");
+      return;
+    }
+    if (isForeignEmail(email)) {
+      showForeignEmailWarning();
       return;
     }
 
@@ -212,3 +256,25 @@ if (btnLogout) {
     showAuthMessage("Вы вышли из аккаунта", "info");
   });
 }
+
+// Валидация email при вводе в форме регистрации
+const registerEmailInput = document.getElementById("register_email");
+
+if (registerEmailInput) {
+  registerEmailInput.addEventListener("blur", function () {
+    const email = this.value.trim();
+    if (email && isForeignEmail(email)) {
+      this.classList.add("is-invalid");
+    } else {
+      this.classList.remove("is-invalid");
+    }
+  });
+
+  registerEmailInput.addEventListener("input", function () {
+    const email = this.value.trim();
+    if (!isForeignEmail(email)) {
+      this.classList.remove("is-invalid");
+    }
+  });
+}
+
