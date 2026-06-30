@@ -180,6 +180,14 @@ html {
     padding: 0 4px;
   }
 
+  .upload-area {
+    gap: 8px;
+  }
+
+  #carousel_controls {
+    gap: 8px;
+  }
+
   .form-control,
   .btn,
   .custom-file-button,
@@ -187,6 +195,12 @@ html {
     padding: 6px 12px;
     font-size: 14px;
     height: auto;
+    margin-bottom: 6px;
+  }
+
+  .btn:last-child,
+  #button_upload {
+    margin-bottom: 0;
   }
 
   h1 {
