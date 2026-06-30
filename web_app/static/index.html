@@ -218,7 +218,21 @@
                         <form id="register_form" style="display: none;">
                             <div class="mb-3">
                                 <label class="form-label">Email</label>
-                                <input type="email" class="form-control" id="register_email" required>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" id="register_email_local" placeholder="username" required>
+                                    <span class="input-group-text">@</span>
+                                    <input type="text" class="form-control" id="register_email_domain" list="email_domains" placeholder="выберите или введите домен" required>
+                                    <datalist id="email_domains">
+                                        <option value="mail.ru">
+                                        <option value="yandex.ru">
+                                        <option value="bk.ru">
+                                        <option value="inbox.ru">
+                                        <option value="list.ru">
+                                        <option value="internet.ru">
+                                        <option value="ya.ru">
+                                        <option value="rambler.ru">
+                                    </datalist>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Пароль</label>

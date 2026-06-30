@@ -57,6 +57,12 @@ function showRegisterForm() {
       'Уже есть аккаунт? <a href="#" id="show_login">Войти</a>';
 }
 
+function getRegisterEmail() {
+  const local = document.getElementById("register_email_local")?.value?.trim() || "";
+  const domain = document.getElementById("register_email_domain")?.value?.trim() || "";
+  return local && domain ? `${local}@${domain}` : "";
+}
+
 function openAuthModal() {
   const modalEl = document.getElementById("authModal");
   if (modalEl) {
@@ -183,7 +189,7 @@ if (registerForm) {
     e.preventDefault();
     clearAuthMessage();
 
-    const email = document.getElementById("register_email").value;
+    const email = getRegisterEmail();
     const password = document.getElementById("register_password").value;
 
     if (!email || !password) {
@@ -257,22 +263,14 @@ if (btnLogout) {
   });
 }
 
-// Валидация email при вводе в форме регистрации
-const registerEmailInput = document.getElementById("register_email");
+const registerEmailLocal = document.getElementById("register_email_local");
 
-if (registerEmailInput) {
-  registerEmailInput.addEventListener("blur", function () {
-    const email = this.value.trim();
+if (registerEmailLocal) {
+  registerEmailLocal.addEventListener("blur", function () {
+    const email = getRegisterEmail();
     if (email && isForeignEmail(email)) {
       this.classList.add("is-invalid");
     } else {
-      this.classList.remove("is-invalid");
-    }
-  });
-
-  registerEmailInput.addEventListener("input", function () {
-    const email = this.value.trim();
-    if (!isForeignEmail(email)) {
       this.classList.remove("is-invalid");
     }
   });
