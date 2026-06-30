@@ -10,6 +10,64 @@ const prevBtn = document.getElementById("prev_btn");
 const nextBtn = document.getElementById("next_btn");
 const skipBtn = document.getElementById("skip_btn");
 
+const ALLOWED_FORMATS = [
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/bmp",
+  "image/tiff",
+  "image/webp",
+  "application/pdf",
+];
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+function showError(message, detail) {
+  const errorContainer = document.getElementById("upload_error");
+  if (!errorContainer) {
+    alert(message + (detail ? ": " + detail : ""));
+    return;
+  }
+
+  let html = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <strong>${message}</strong>`;
+  if (detail) {
+    html += `<br><small>${detail}</small>`;
+  }
+  html += ` <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>`;
+  errorContainer.innerHTML = html;
+  errorContainer.style.display = "block";
+
+  setTimeout(() => {
+    errorContainer.style.display = "none";
+  }, 8000);
+}
+
+function hideError() {
+  const errorContainer = document.getElementById("upload_error");
+  if (errorContainer) {
+    errorContainer.style.display = "none";
+  }
+}
+
+function validateFile(file) {
+  if (!ALLOWED_FORMATS.includes(file.type)) {
+    return {
+      valid: false,
+      message: "Неподдерживаемый формат",
+      detail: `Формат "${file.type}" не поддерживается. Используйте PNG, JPG, BMP, TIFF, WEBP или PDF.`,
+    };
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+    return {
+      valid: false,
+      message: "Файл слишком большой",
+      detail: `Размер: ${sizeMB} МБ, максимум: 10 МБ`,
+    };
+  }
+  return { valid: true };
+}
+
 function showPreview(file) {
   if (currentPreviewUrl) {
     URL.revokeObjectURL(currentPreviewUrl);
@@ -44,6 +102,7 @@ function showPreview(file) {
 
 if (fileInput && fileNameSpan) {
   fileInput.addEventListener("change", function () {
+    hideError();
     if (this.files && this.files.length > 1) {
       fileNameSpan.textContent = `Выбрано файлов: ${this.files.length}`;
     } else if (this.files && this.files.length === 1) {
@@ -109,6 +168,7 @@ async function processQueueItem() {
   const file = uploadQueue[queueIndex];
   if (!file) return;
 
+  hideError();
   showPreview(file);
   updateQueueProgress();
   updateCarouselButtons();
@@ -128,8 +188,15 @@ async function processQueueItem() {
       body: formData,
     });
     if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.detail || "Ошибка распознавания");
+      let message = "Ошибка распознавания";
+      try {
+        const err = await response.json();
+        message = err.detail || message;
+      } catch (e) {
+        message = response.statusText || message;
+      }
+      showError(message);
+      throw new Error(message);
     }
 
     const data = await response.json();
@@ -140,7 +207,6 @@ async function processQueueItem() {
       editorContainer.scrollIntoView({ behavior: "smooth" });
     }
   } catch (err) {
-    alert("Ошибка: " + err.message);
   } finally {
     uploadBtn.disabled = false;
     uploadBtn.innerHTML = btnText;
@@ -182,6 +248,14 @@ if (uploadBtn && fileInput) {
       alert("Для обработки необходимо загрузить изображение или PDF");
       return;
     }
+
+    const file = fileInput.files[0];
+    const validation = validateFile(file);
+    if (!validation.valid) {
+      showError(validation.message, validation.detail);
+      return;
+    }
+
     uploadQueue = Array.from(fileInput.files);
     queueIndex = 0;
     await processQueueItem();
