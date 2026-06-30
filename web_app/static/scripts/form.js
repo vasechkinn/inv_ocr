@@ -70,6 +70,44 @@ if (editForm && saveBtn) {
       return;
     }
 
+    const innFields = [
+      { id: "provider_inn", label: "ИНН поставщика" },
+      { id: "buyer_inn", label: "ИНН покупателя" },
+    ];
+    const accountFields = [
+      { id: "provider_account", label: "Расчётный счёт поставщика" },
+    ];
+
+    for (const field of innFields) {
+      const el = document.getElementById(field.id);
+      const val = el?.value || "";
+      if (val && !/^\d+$/.test(val)) {
+        alert(`${field.label} должен содержать только цифры`);
+        el?.focus();
+        return;
+      }
+      if (val && val.length !== 10 && val.length !== 12) {
+        alert(`${field.label} должен содержать 10 или 12 цифр`);
+        el?.focus();
+        return;
+      }
+    }
+
+    for (const field of accountFields) {
+      const el = document.getElementById(field.id);
+      const val = el?.value || "";
+      if (val && !/^\d+$/.test(val)) {
+        alert(`${field.label} должен содержать только цифры`);
+        el?.focus();
+        return;
+      }
+      if (val && val.length !== 20) {
+        alert(`${field.label} должен содержать 20 цифр`);
+        el?.focus();
+        return;
+      }
+    }
+
     const formData = {
       date: dateField ? dateField.value : null,
       summa: summaField ? summaField.value : null,
@@ -115,6 +153,10 @@ if (editForm && saveBtn) {
           throw new Error("Сессия истекла. Войдите снова.");
         }
         const err = await response.json();
+        if (err.detail && Array.isArray(err.detail)) {
+          const messages = err.detail.map((e) => e.msg).join("; ");
+          throw new Error(messages);
+        }
         throw new Error(err.detail || "Ошибка сохранения");
       }
       const res = await response.json();

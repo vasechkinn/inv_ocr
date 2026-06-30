@@ -105,6 +105,19 @@ class BuyerCreate(BaseModel):
     inn_b: Optional[str] = Field(None, max_length=MAX_LEN_INN)
     buyer_company: Optional[str] = Field(None, max_length=MAX_LEN_NAME)
 
+    @field_validator("inn_b")
+    @classmethod
+    def validate_inn_b(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        if not v.strip():
+            return None
+        if not v.isdigit():
+            raise ValueError("ИНН должен содержать только цифры")
+        if len(v) not in (10, 12):
+            raise ValueError("ИНН должен содержать 10 или 12 цифр")
+        return v
+
 
 class BuyerResponse(BaseModel):
     id: int
@@ -118,6 +131,32 @@ class SupplierCreate(BaseModel):
     inn_sup: Optional[str] = Field(None, max_length=MAX_LEN_INN)
     num_acc: Optional[str] = Field(None, max_length=MAX_LEN_ACCOUNT)
     name_sup: Optional[str] = Field(None, max_length=MAX_LEN_NAME)
+
+    @field_validator("inn_sup")
+    @classmethod
+    def validate_inn_sup(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        if not v.strip():
+            return None
+        if not v.isdigit():
+            raise ValueError("ИНН поставщика должен содержать только цифры")
+        if len(v) not in (10, 12):
+            raise ValueError("ИНН поставщика должен содержать 10 или 12 цифр")
+        return v
+
+    @field_validator("num_acc")
+    @classmethod
+    def validate_num_acc(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        if not v.strip():
+            return None
+        if not v.isdigit():
+            raise ValueError("Номер счёта должен содержать только цифры")
+        if len(v) != 20:
+            raise ValueError("Номер счёта должен содержать 20 цифр")
+        return v
 
 
 class SupplierResponse(BaseModel):
@@ -201,6 +240,32 @@ class InvoiceUpdate(BaseModel):
     buyer_name: Optional[str] = Field(None, max_length=MAX_LEN_NAME)
     buyer_inn: Optional[str] = Field(None, max_length=MAX_LEN_INN)
     buyer_fio: Optional[str] = Field(None, max_length=MAX_LEN_NAME)
+
+    @field_validator("provider_inn", "buyer_inn")
+    @classmethod
+    def validate_inn(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        if not v.strip():
+            return None
+        if not v.isdigit():
+            raise ValueError("ИНН должен содержать только цифры")
+        if len(v) not in (10, 12):
+            raise ValueError("ИНН должен содержать 10 или 12 цифр")
+        return v
+
+    @field_validator("provider_account")
+    @classmethod
+    def validate_account(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        if not v.strip():
+            return None
+        if not v.isdigit():
+            raise ValueError("Номер счёта должен содержать только цифры")
+        if len(v) != 20:
+            raise ValueError("Номер счёта должен содержать 20 цифр")
+        return v
 
 
 class InvoiceResponse(InvoiceCreate):
