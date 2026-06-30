@@ -1,5 +1,7 @@
 import os
+from io import BytesIO
 from pdf2image.exceptions import PDFPageCountError, PDFSyntaxError
+from PIL import Image
 from ocr_services.utils import converted_pdf, save_pil_file, save_byte_files
 
 
@@ -28,11 +30,19 @@ def convert_img(file: bytes, filename: str):
             if suff not in forms:
                 raise FileConversionError(
                     f"неподдерживаемый формат файла: {suff}."
-                    f"поддерживаются: {', '.join(forms)}"
+                    f" Поддерживаются: {', '.join(forms)}"
                 )
 
-            path = save_byte_files(file, suffix=suff)
+            if suff == ".webp":
+                img = Image.open(BytesIO(file))
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+                path = save_pil_file(img, suffix=".png")
+            else:
+                path = save_byte_files(file, suffix=suff)
 
         return path
+    except FileConversionError:
+        raise
     except Exception as e:
         raise FileConversionError(f"ошибка обработки: {str(e)}")
