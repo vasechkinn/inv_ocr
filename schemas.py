@@ -303,6 +303,18 @@ class InvoiceUpdate(BaseModel):
             raise ValueError("Номер счёта должен содержать 20 цифр")
         return v
 
+    @field_validator("date", mode="before")
+    @classmethod
+    def parse_date(cls, v):
+        if v == "" or v is None:
+            return None
+        if isinstance(v, str):
+            try:
+                return datetime.strptime(v, "%Y-%m-%d").date()
+            except ValueError:
+                raise ValueError("Некорректный формат даты. Ожидается YYYY-MM-DD")
+        return v
+
 
 class InvoiceResponse(InvoiceCreate):
     id: int
