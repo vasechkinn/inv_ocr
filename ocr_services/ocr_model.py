@@ -1,7 +1,7 @@
 import os
 import logging
 from paddleocr import PaddleOCR
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 os.environ["PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK"] = "1"

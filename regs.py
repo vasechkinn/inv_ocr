@@ -127,12 +127,6 @@ class InvoiceDataExtractor:
         stop_markers = self._BUYER_MARKERS + self._SECTION_END_MARKERS
         return self._extract_role_block(text, self._PROVIDER_MARKERS, stop_markers)
 
-    def _block_provider(self, text: str) -> Optional[str]:
-        """
-        Алиас для обратной совместимости с отладочными скриптами.
-        """
-        return self._block_text(text)
-
     def _block_buyer(self, text: str) -> Optional[str]:
         """
         Блок покупателя
