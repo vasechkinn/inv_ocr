@@ -24,21 +24,39 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 function showError(message, detail) {
   const errorContainer = document.getElementById("upload_error");
   if (!errorContainer) {
-    alert(message + (detail ? ": " + detail : ""));
+    alert((message || '') + (detail ? ': ' + detail : ''));
     return;
   }
 
-  let html = `<div class="alert alert-danger alert-dismissible fade show" role="alert">
-    <strong>${message}</strong>`;
+  const container = document.createElement('div');
+  container.className = 'alert alert-danger alert-dismissible fade show';
+  container.setAttribute('role', 'alert');
+
+  const strong = document.createElement('strong');
+  strong.textContent = message || 'Ошибка';
+  container.appendChild(strong);
+
   if (detail) {
-    html += `<br><small>${detail}</small>`;
+    const br = document.createElement('br');
+    const small = document.createElement('small');
+    small.textContent = detail;
+    container.appendChild(br);
+    container.appendChild(small);
   }
-  html += ` <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>`;
-  errorContainer.innerHTML = html;
-  errorContainer.style.display = "block";
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn-close';
+  btn.setAttribute('data-bs-dismiss', 'alert');
+  btn.setAttribute('aria-label', 'Close');
+  container.appendChild(btn);
+
+  errorContainer.innerHTML = '';
+  errorContainer.appendChild(container);
+  errorContainer.style.display = 'block';
 
   setTimeout(() => {
-    errorContainer.style.display = "none";
+    errorContainer.style.display = 'none';
   }, 8000);
 }
 
