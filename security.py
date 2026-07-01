@@ -7,10 +7,10 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from dotenv import load_dotenv
+from db import get_db, User
 
 load_dotenv()
 
-from db import SessionLocal, get_db, User
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")

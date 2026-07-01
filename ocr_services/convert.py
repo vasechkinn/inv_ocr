@@ -2,7 +2,12 @@ import os
 from io import BytesIO
 from pdf2image.exceptions import PDFPageCountError, PDFSyntaxError
 from PIL import Image
-from ocr_services.utils import converted_pdf, save_pil_file, save_byte_files, get_pdf_page_count
+from ocr_services.utils import (
+    converted_pdf,
+    save_pil_file,
+    save_byte_files,
+    get_pdf_page_count,
+)
 
 
 class FileConversionError(Exception):

@@ -1,5 +1,5 @@
 from typing import Optional, List
-from datetime import datetime, timezone
+from datetime import datetime
 from sqlalchemy.orm import (
     mapped_column,
     Mapped,

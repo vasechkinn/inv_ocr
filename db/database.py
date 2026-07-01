@@ -34,7 +34,7 @@ elif DB_TYPE == "mysql":
         f"mysql+pymysql://{DB_USER}:{encoded_password}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
 
-    engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=True)
+    engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=False)
 
 else:
     raise ValueError(f"Неподдерживаемый DB_TYPE: {DB_TYPE}")

@@ -1,4 +1,3 @@
-import os
 from fastapi import (
     APIRouter,
     UploadFile,
@@ -6,7 +5,6 @@ from fastapi import (
     HTTPException,
     status,
 )
-from db import get_db
 from ocr_services.utils import (
     del_temp_files,
 )

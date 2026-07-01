@@ -1,12 +1,12 @@
 import os
-
-os.environ["PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK"] = "1"
-os.environ["PADDLEX_HOME"] = "./paddlex_models"
-os.environ["FLAGS_use_mkldnn"] = "0"
 import logging
 from paddleocr import PaddleOCR
 from dataclasses import dataclass, field
 from typing import Optional
+
+os.environ["PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK"] = "1"
+os.environ["PADDLEX_HOME"] = "./paddlex_models"
+os.environ["FLAGS_use_mkldnn"] = "0"
 
 logging.getLogger("ppocr").setLevel(logging.ERROR)
 
@@ -20,7 +20,6 @@ class OCRConfig:
     use_doc_unwarping: bool = False
     use_textline_orientation: bool = False
     use_gpu: bool = True
-    # show_log: bool = False
 
 
 class OCREngine:
@@ -35,7 +34,6 @@ class OCREngine:
                 config = OCRConfig()
 
             device = "gpu" if config.use_gpu else "cpu"
-            # log_level = logging.ERROR if not config.show_log else logging.INFO
 
             params = {
                 "lang": config.lang,
@@ -43,7 +41,6 @@ class OCREngine:
                 "use_doc_unwarping": config.use_doc_unwarping,
                 "use_textline_orientation": config.use_textline_orientation,
                 "device": device,
-                # 'log_level': log_level,
                 "enable_mkldnn": False,
             }
             cls._example.ocr = PaddleOCR(**params)

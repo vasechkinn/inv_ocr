@@ -45,7 +45,7 @@ def del_temp_files(path: str):
 def get_pdf_page_count(pdf_file: bytes) -> int:
     """
     получение количества страниц PDF без рендеринга изображений.
-        
+
     pdf_file: байты PDF файла
     return: количество страниц
     """

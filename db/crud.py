@@ -1,16 +1,10 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from typing import Optional
-from datetime import date, datetime
-from .models import Invoice, Supplier, Buyer, User
+from .models import Invoice, Buyer, Supplier
 from schemas import (
-    FullOcrResult,
-    InvoiceCreate,
-    InvoiceUpdate,
     BuyerCreate,
     SupplierCreate,
-    UserCreate,
-    UserLogin,
+    InvoiceCreate,
 )
 
 
